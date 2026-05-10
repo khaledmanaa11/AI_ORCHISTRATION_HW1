@@ -1,8 +1,24 @@
-# Noisy Sine Signal Dataset Generator
+# HW1 — Noisy Sine Signal Dataset + Neural Signal Regression
 
-A Python package that generates a labeled dataset from four pure sine waves and their composite,
-each corrupted by amplitude and phase noise (Gaussian white noise + burst noise), windowed with
-a one-hot context selector. The dataset is ready for training RNN, FC, and LSTM models.
+A two-package Python project that:
+1. **signal_dataset** — Generates a labeled dataset from four pure sine waves, each corrupted
+   by Gaussian + burst noise, windowed with a one-hot context selector.
+2. **neural_signal** — Trains and evaluates three neural network architectures (FCN, RNN, LSTM)
+   on that dataset for conditional source-separation / denoising regression.
+
+---
+
+## Training Results
+
+| Model | Train MSE | Val MSE | Test MSE | Epochs | Early Stop |
+|-------|-----------|---------|----------|--------|------------|
+| **FCN** | 0.0543 | 0.0801 | **0.0817** | 76 | No |
+| **LSTM** | 0.7721 | 0.8137 | 0.8173 | 28 | No |
+| **RNN** | 0.7783 | 0.8254 | 0.8245 | 26 | No |
+
+FCN significantly outperforms the sequence models on this task because the one-hot conditioning
+vector C already encodes all the signal-selection context the model needs — removing the advantage
+of temporal gating.
 
 ---
 
@@ -26,43 +42,43 @@ For each signal `si`, the noisy version is:
 s_noisy(t) = (A_i + N_amp(t)) · sin(2π · f_i · t + φ_i + N_phase(t))
 ```
 
-Where:
 - `N_amp = gaussian_amp + burst_amp` — amplitude perturbation
 - `N_phase = gaussian_phase + burst_phase` — phase perturbation
-- Gaussian: per-sample Gaussian white noise with configurable σ per signal
-- Burst: random-duration amplitude/phase spikes (probability, duration, magnitude configurable)
+- Gaussian: per-sample white noise with configurable σ per signal
+- Burst: random-duration spikes (probability, duration, magnitude all configurable)
 
 ---
 
-## Dataset Structure
+## Task Formulation
 
-- **X** `(N, W)` — composite noisy windows extracted from `s5_noisy` only
-- **C** `(N, 5)` — one-hot signal selector (which of s1–s5 to isolate)
-- **y** `(N, 1)` — scalar clean value of the C-selected signal at the window center
+```
+input  = concat([x_window, C])   shape: (W + 5,) = (15,)   ← FCN
+input  = x_window.reshape(W, 1)  shape: (10, 1)             ← RNN / LSTM
+target = scalar clean value of the C-selected signal at the window centre
+```
 
-At model training time: `x_input = concat([x_w, C])` → shape `(W+5,)` = `(15,)`
+`x_window` is a length-W slice of `s5_noisy`; `C` is a one-hot vector selecting which of the
+five clean components to recover. The model learns conditional source separation.
 
 ---
 
 ## Quickstart
 
 ```bash
-# 1. Clone or download repo
-git clone <repo-url>
-cd HW1
-
-# 2. Install dependencies
+# 1. Install dependencies
 uv sync
 
-# 3. Generate dataset
+# 2. Generate dataset
 uv run python -m signal_dataset
 
-# 4. Output files
-#   data/dataset.npz   — train/val/test splits (X, C, y per split)
-#   data/signals_raw.npz — all clean and noisy signal vectors
+# 3. Train all three models & save results
+uv run python -m neural_signal
 
-# 5. (Optional) Generate visualizations
-uv run python -m signal_dataset.visualize
+# 4. Run tests with coverage
+uv run pytest tests/
+
+# 5. Lint (must be zero errors)
+uv run ruff check
 ```
 
 ---
@@ -71,72 +87,121 @@ uv run python -m signal_dataset.visualize
 
 ```
 HW1/
-├── src/signal_dataset/
-│   ├── sdk/sdk.py               # Single entry point (DatasetSDK)
-│   ├── services/
-│   │   ├── signal_generator.py  # Clean sine wave generation
-│   │   ├── noise_injector.py    # Gaussian + burst noise injection
-│   │   ├── windower.py          # Sliding window + one-hot C vector
-│   │   └── dataset_builder.py   # Splits, .npz serialization
-│   ├── shared/
-│   │   ├── config.py            # Config loading + validation
-│   │   ├── gatekeeper.py        # API rate-limit gatekeeper
-│   │   └── version.py           # Version tracking
-│   ├── constants.py             # Math/physical constants
-│   ├── main.py                  # CLI entry point
-│   └── visualize.py             # Visualization script
+├── src/
+│   ├── signal_dataset/               # Phase 1 — dataset generation
+│   │   ├── sdk/sdk.py                # DatasetSDK entry point
+│   │   ├── services/
+│   │   │   ├── signal_generator.py   # Pure sine wave generation
+│   │   │   ├── noise_injector.py     # Gaussian + burst noise
+│   │   │   ├── windower.py           # Sliding window + one-hot C
+│   │   │   └── dataset_builder.py    # Train/val/test splits → .npz
+│   │   └── shared/
+│   │       ├── config.py
+│   │       ├── gatekeeper.py
+│   │       └── version.py
+│   └── neural_signal/                # Phase 2 — neural regression
+│       ├── sdk/sdk.py                # NeuralSignalSDK entry point
+│       ├── models/
+│       │   ├── fcn.py                # Fully-connected (Dense 128→64→1)
+│       │   ├── rnn.py                # Vanilla RNN (hidden=64, tanh)
+│       │   └── lstm.py               # LSTM (hidden=64, dense 32→1)
+│       ├── services/
+│       │   ├── data_loader.py        # DataLoaderService + DataBundle
+│       │   ├── preprocessor.py       # Z-score normalisation
+│       │   ├── trainer.py            # Adam + MSE + early stopping
+│       │   ├── evaluator.py          # MSE evaluation + CSV table
+│       │   └── visualizer.py         # All result plots (PNG)
+│       └── shared/
+│           ├── config.py             # ConfigManager + all dataclasses
+│           ├── gatekeeper.py         # ApiGatekeeper (rate limits)
+│           └── version.py
 ├── tests/
-│   ├── unit/                    # Unit tests (TDD: RED→GREEN→REFACTOR)
-│   └── integration/             # End-to-end pipeline tests
+│   ├── conftest.py                   # Shared fixtures (both packages)
+│   ├── unit/                         # 340+ unit tests (TDD)
+│   └── integration/                  # End-to-end pipeline tests
 ├── config/
-│   ├── setup.json               # All dataset parameters
-│   └── rate_limits.json         # API gatekeeper rate limits
+│   ├── setup.json                    # All parameters (dataset + training)
+│   └── rate_limits.json              # API gatekeeper rate limits
+├── data/
+│   ├── dataset.npz                   # Generated dataset (X, C, y splits)
+│   └── signals_raw.npz               # Raw clean + noisy signal vectors
+├── results/                          # All generated plots + tables
+│   ├── clean_noisy_predicted.png
+│   ├── mse_comparison.png
+│   ├── loss_curves_{fcn,rnn,lstm}.png
+│   ├── residuals_{fcn,rnn,lstm}.png
+│   ├── pred_vs_actual.png
+│   ├── comparison_table.csv
+│   └── scaler_params.json
 ├── docs/
-│   ├── PRD.md                   # Product Requirements Document
-│   ├── PLAN.md                  # Architecture plan
-│   ├── TODO.md                  # Task list
-│   └── PRD_dataset_generation.md
-├── results/                     # Generated visualizations
-├── notebooks/                   # Jupyter analysis notebook
-├── pyproject.toml               # All dependencies (uv)
+│   ├── PRD.md
+│   ├── PLAN.md
+│   └── TODO.md
+├── pyproject.toml                    # All dependencies (uv)
 └── uv.lock
 ```
 
 ---
 
+## Architecture
+
+### FCN (Fully Connected Network)
+- Input: `(N, 15)` — 10-sample window concatenated with 5-dim one-hot C
+- Hidden: Dense(128) → ReLU → Dropout(0.1) → Dense(64) → ReLU → Dropout(0.1)
+- Output: Dense(1)
+
+### RNN (Vanilla Recurrent Network)
+- Input: `(N, 10, 1)` — window reshaped as sequence, many-to-one
+- Hidden: RNN(hidden=64, tanh, batch_first=True)
+- Output: last hidden state → Linear(64, 1)
+
+### LSTM (Long Short-Term Memory)
+- Input: `(N, 10, 1)` — sequence, many-to-one
+- Hidden: LSTM(hidden=64, batch_first=True)
+- Output: last hidden state → Dense(32) → ReLU → Dense(1)
+
+### Training Setup
+- Optimiser: Adam (lr=0.001, weight_decay=1e-4)
+- Loss: MSE
+- Batch size: 64
+- Max epochs: 200
+- Early stopping: patience=10 on val MSE
+- Normalisation: Z-score (fit on train only, params saved to `results/scaler_params.json`)
+
+---
+
 ## Configuration
 
-All parameters are in `config/setup.json`:
+All parameters live in `config/setup.json` — no hardcoded values in source code.
 
-| Key | Description | Default |
-|-----|-------------|---------|
-| `dataset.duration_sec` | Signal duration in seconds | 10 |
-| `dataset.sample_rate_hz` | Sampling rate | 1000 |
-| `dataset.window_size` | Context window size W | 10 |
-| `dataset.train_ratio` | Train split fraction | 0.70 |
-| `dataset.val_ratio` | Validation fraction | 0.15 |
-| `dataset.test_ratio` | Test fraction | 0.15 |
-| `dataset.random_seed` | Reproducibility seed | 42 |
-| `noise.gaussian.sigma_amp` | Gaussian amplitude σ per signal | [0.05, 0.05, 0.03, 0.02] |
-| `noise.burst.probability` | Burst event probability per sample | 0.01 |
+| Section | Key | Default |
+|---------|-----|---------|
+| `dataset` | `duration_sec` | 10 |
+| `dataset` | `sample_rate_hz` | 1000 |
+| `dataset` | `window_size` | 10 |
+| `training` | `batch_size` | 64 |
+| `training` | `learning_rate` | 0.001 |
+| `training` | `max_epochs` | 200 |
+| `training` | `early_stopping_patience` | 10 |
+| `fcn` | `hidden_sizes` | [128, 64] |
+| `rnn` | `hidden_size` | 64 |
+| `lstm` | `hidden_size` | 64 |
 
 ---
 
 ## Testing
 
 ```bash
-# Run all tests with coverage
-uv run pytest tests/
-
-# Run unit tests only
-uv run pytest tests/unit/
-
-# Run integration tests
+uv run pytest tests/          # all tests with coverage report
+uv run pytest tests/unit/     # unit tests only
 uv run pytest tests/integration/
 ```
 
-Coverage: **≥ 85%** (enforced — build fails below threshold).
-Current: **97.79%**
+| Metric | Value |
+|--------|-------|
+| Tests | 377 passed |
+| Coverage | 98.37% |
+| Threshold | 85% (enforced — build fails below) |
 
 ---
 
@@ -146,107 +211,46 @@ Current: **97.79%**
 uv run ruff check
 ```
 
-Zero errors enforced. Configuration in `pyproject.toml`.
+Zero errors enforced across `src/` and `tests/`. Configuration in `pyproject.toml`:
+- `select = ["E","F","W","I","N","UP","B","C4","SIM"]`
+- `ignore = ["E501"]`
+- `line-length = 100`
+
+---
+
+## Results
+
+### Clean vs Noisy vs Predicted
+![clean_noisy_predicted](results/clean_noisy_predicted.png)
+
+### MSE Comparison (All Models)
+![mse_comparison](results/mse_comparison.png)
+
+### Training Loss Curves — FCN
+![loss_fcn](results/loss_curves_fcn.png)
+
+### Training Loss Curves — RNN
+![loss_rnn](results/loss_curves_rnn.png)
+
+### Training Loss Curves — LSTM
+![loss_lstm](results/loss_curves_lstm.png)
+
+### Residuals — FCN
+![residuals_fcn](results/residuals_fcn.png)
+
+### Predicted vs Actual
+![pred_vs_actual](results/pred_vs_actual.png)
 
 ---
 
 ## Design Rationale — Why These Four Signals?
 
-The four sine waves were deliberately engineered to create a composite signal that is complex enough
-to defeat fully-connected networks (FCNs) yet structured enough for Long Short-Term Memory (LSTM)
-networks to succeed. Each component applies distinct pressure on a different architectural weakness.
-
-### Signal Roles
-
 | Signal | Role | Architecture Stress |
 |--------|------|---------------------|
-| **s1** — 5 Hz, A=2.0 | Dominant slow-moving trend | FCN cannot distinguish trend from noise without temporal context |
-| **s2** — 15 Hz, A=1.5, φ=π/4 | Phase-shifted mid-band | Tests whether the network memorises absolute starting state vs. reacts to instantaneous slope — RNNs that rely on hidden state alone fail when phase is unknown |
-| **s3** — 50 Hz, A=0.8 | High-frequency rapid variation | Exceeds the effective "memory horizon" of vanilla RNNs; vanishing gradients prevent back-propagation across the ~20 samples per cycle needed to track phase accurately |
-| **s4** — 100 Hz, A=0.3 | Near-Nyquist structural oscillation | Only 10 samples per cycle at 1000 Hz; mimics high-frequency structural noise and forces the model to distinguish injected Gaussian/burst noise from a real signal component |
-| **s5** | Composite (s1+s2+s3+s4) | Source of the context window X; the model must un-mix it given a one-hot conditioning vector C |
-
-### Why FCNs Fail
-
-An FCN maps a fixed-size input window to an output through purely spatial (pointwise) transformations.
-It has no mechanism to track phase evolution across samples or accumulate evidence about frequency.
-Given X of width W=10 (only 10 ms at 1000 Hz), a FCN cannot reliably separate the 5 Hz trend
-from the 100 Hz component — both look like arbitrary amplitudes without temporal context.
-
-### Why Vanilla RNNs Degrade
-
-RNNs carry a hidden state across time, which helps with s1's slow trend. However:
-- **s3 (50 Hz)**: requires tracking phase over ~20 samples per cycle. Vanishing gradients make
-  this unreliable during back-propagation through time.
-- **s2 (π/4 phase shift)**: the initial hidden state is zero, so the network must infer the
-  absolute phase from context — difficult when the window is short and noise is present.
-- **Burst noise** causes gradient spikes that destabilize RNN training without gating.
-
-### Why LSTMs Succeed
-
-The LSTM's cell state acts as a persistent, gated memory. The forget gate suppresses irrelevant
-history; the input gate selectively writes new phase/amplitude information:
-- The cell state can maintain a running estimate of frequency and phase across many time steps.
-- The output gate exposes only the relevant part of memory to the current prediction.
-- Combined with the one-hot conditioning vector C (appended to each window), the LSTM can
-  specialise its cell dynamics per signal — essentially implementing conditional source separation.
-
-### Conditional Source Separation Task
-
-At inference time the model receives:
-
-```
-input = concat([x_w, C])   shape: (W + 5,) = (15,)
-```
-
-where `x_w` is a window from `s5_noisy` and `C` is a one-hot vector indicating which clean
-signal component to recover. The label `y` is the scalar clean value of that component at the
-window centre. This framing mimics real-world scenarios such as:
-
-- Isolating a heartbeat frequency from a composite biomedical signal
-- Extracting a carrier from a multi-tone RF signal
-- Separating structural vibration modes in an accelerometer stream
-
-The noise parameters (σ_amp, σ_phase, burst probability) are tunable via `config/setup.json`,
-allowing sensitivity analysis of how each architecture degrades as the signal-to-noise ratio drops.
-
----
-
-## Screenshots
-
-### Clean Signal Components
-![clean_signals](results/clean_signals.png)
-
-### Clean vs Noisy Signals
-![noisy_vs_clean](results/noisy_vs_clean.png)
-
-### Frequency Spectrum (Clean vs Noisy)
-![frequency_spectrum](results/frequency_spectrum.png)
-
-### Noise Distribution Analysis
-![noise_distribution](results/noise_distribution.png)
-
-### Burst Noise Events on s1
-![burst_events](results/burst_events.png)
-
-### Dataset Split Distribution
-![dataset_splits](results/dataset_splits.png)
-
-### Context Window + One-Hot Selector Examples
-![context_window_example](results/context_window_example.png)
-
----
-
-## Next Phase
-
-Phase 2 will train RNN, Fully Connected, and LSTM models on this dataset to learn
-to isolate the selected clean signal component from the noisy composite.
-
----
-
-## License
-
-MIT License — see `LICENSE` for details.
+| **s1** — 5 Hz, A=2.0 | Dominant slow trend | FCN cannot distinguish trend without temporal context |
+| **s2** — 15 Hz, A=1.5, φ=π/4 | Phase-shifted mid-band | Tests whether the model memorises absolute phase vs. infers it from context |
+| **s3** — 50 Hz, A=0.8 | High-frequency oscillation | Exceeds RNN memory horizon; vanishing gradients prevent phase tracking |
+| **s4** — 100 Hz, A=0.3 | Near-Nyquist component | Only 10 samples/cycle; forces separation of signal from noise |
 
 ---
 

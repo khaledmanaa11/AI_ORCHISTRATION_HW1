@@ -1,4 +1,4 @@
-# PLAN — Architecture & Design
+# PLAN — Architecture & Design (FCN · RNN · LSTM)
 
 **Version:** 1.00
 **Date:** 2026-05-10
@@ -13,10 +13,12 @@
 | Language | Python 3.10+ | Required by guidelines |
 | Package manager | uv | Mandatory per CLAUDE.md |
 | Linter | Ruff | Mandatory per CLAUDE.md |
-| Numerics | NumPy | Vectorised signal ops |
-| Visualisation | Matplotlib + Seaborn | Standard, offline |
+| Deep learning | PyTorch | Model definitions, training loop, dataloaders |
+| Numerics | NumPy | Data loading and preprocessing |
+| Data | Pandas | Results tables, CSV export |
+| Visualisation | Matplotlib + Seaborn | Static plots, loss curves |
 | Notebooks | Jupyter | Required by guidelines |
-| Testing | pytest + pytest-cov | TDD mandatory |
+| Testing | pytest + pytest-cov + pytest-mock | TDD mandatory |
 
 ---
 
@@ -24,45 +26,57 @@
 
 ```
 HW1/
-├── src/signal_dataset/
-│   ├── __init__.py              # exports __all__, __version__
+├── src/neural_signal/
+│   ├── __init__.py                    # __all__, __version__
 │   ├── sdk/
-│   │   └── sdk.py               # Single entry point for all logic
+│   │   └── sdk.py                     # NeuralSignalSDK — single public entry point
+│   ├── models/
+│   │   ├── fcn.py                     # FCNModel (Dense 128→64→1, Dropout, L2)
+│   │   ├── rnn.py                     # RNNModel (hidden=64, tanh, many-to-one)
+│   │   └── lstm.py                    # LSTMModel (hidden=64, Dense 32→1, many-to-one)
 │   ├── services/
-│   │   ├── signal_generator.py  # Clean sine wave generation
-│   │   ├── noise_injector.py    # Gaussian + burst noise injection
-│   │   ├── windower.py          # Sliding window + one-hot C vector
-│   │   └── dataset_builder.py   # Assembly, splits, .npz save
+│   │   ├── data_loader.py             # Load dataset.npz, build DataLoaders
+│   │   ├── preprocessor.py            # Z-score normalization, tensor conversion
+│   │   ├── trainer.py                 # Training loop, Adam, MSE, early stopping
+│   │   ├── evaluator.py               # MSE eval, comparison table
+│   │   └── visualizer.py             # All plots (clean/noisy/pred, loss curves, etc.)
 │   ├── shared/
-│   │   ├── gatekeeper.py        # ApiGatekeeper (required by spec)
-│   │   ├── config.py            # ConfigManager — loads setup.json
-│   │   └── version.py           # __version__ = "1.00"
-│   ├── constants.py             # Physical/math constants only
-│   └── main.py                  # CLI entry point
+│   │   ├── gatekeeper.py              # ApiGatekeeper (mandatory)
+│   │   ├── config.py                  # ConfigManager — loads setup.json
+│   │   └── version.py                 # __version__ = "1.00"
+│   ├── constants.py                   # Model names, keys, hyperparameter names
+│   └── main.py                        # CLI entry point (calls SDK only)
 ├── tests/
 │   ├── unit/
-│   │   ├── test_signal_generator.py
-│   │   ├── test_noise_injector.py
-│   │   ├── test_windower.py
-│   │   ├── test_dataset_builder.py
+│   │   ├── test_fcn.py
+│   │   ├── test_rnn.py
+│   │   ├── test_lstm.py
+│   │   ├── test_data_loader.py
+│   │   ├── test_preprocessor.py
+│   │   ├── test_trainer.py
+│   │   ├── test_evaluator.py
+│   │   ├── test_visualizer.py
 │   │   ├── test_config.py
+│   │   ├── test_gatekeeper.py
 │   │   └── test_sdk.py
 │   ├── integration/
-│   │   └── test_pipeline.py     # end-to-end dataset generation
-│   └── conftest.py
+│   │   └── test_pipeline.py           # end-to-end: load → train → eval → plot
+│   └── conftest.py                    # shared fixtures
 ├── config/
-│   ├── setup.json               # All dataset parameters
-│   └── rate_limits.json         # Gatekeeper rate limits
-├── data/                        # Generated — git-ignored
-├── results/                     # Charts — git-ignored
+│   ├── setup.json                     # All hyperparameters and paths
+│   └── rate_limits.json               # Gatekeeper rate limits
+├── data/                              # dataset.npz (from Phase 1)
+├── results/                           # charts, CSVs, checkpoints
 ├── assets/
 ├── notebooks/
-│   └── dataset_analysis.ipynb
+│   └── results_analysis.ipynb
 ├── docs/
 │   ├── PRD.md
 │   ├── PLAN.md
 │   ├── TODO.md
-│   └── PRD_dataset_generation.md
+│   ├── PRD_fcn.md
+│   ├── PRD_rnn.md
+│   └── PRD_lstm.md
 ├── README.md
 ├── pyproject.toml
 ├── uv.lock
@@ -74,145 +88,178 @@ HW1/
 
 ## 3. Module Responsibilities
 
-### 3.1 `sdk/sdk.py` — `DatasetSDK`
-Single public interface. All external code calls only this.
+### 3.1 `sdk/sdk.py` — `NeuralSignalSDK`
+Single public interface. No business logic here — orchestration only.
 
 ```
-DatasetSDK
-  └── generate_dataset(config_path) -> DatasetResult
-        ├── ConfigManager.load()
-        ├── SignalGenerator.generate_all()
-        ├── NoiseInjector.inject_all()
-        ├── Windower.build_windows()
-        └── DatasetBuilder.assemble_and_save()
+NeuralSignalSDK
+  ├── run_all()          → trains + evaluates all 3 models, saves all results
+  ├── train_model(name)  → trains a single model by name ("fcn"|"rnn"|"lstm")
+  └── evaluate_all()     → loads best checkpoints, runs eval, saves comparison table
 ```
 
-### 3.2 `services/signal_generator.py` — `SignalGenerator`
-- **Input**: signal configs (list of amp/freq/phase), time axis
-- **Output**: `Dict[str, np.ndarray]` — 5 clean signal vectors `(10 000,)`
-- **Logic**: vectorised NumPy sine evaluation + composite sum
-
-### 3.3 `services/noise_injector.py` — `NoiseInjector`
-- **Input**: clean signal vectors, noise config
-- **Output**: `Dict[str, np.ndarray]` — 5 noisy signal vectors `(10 000,)`
+### 3.2 `services/data_loader.py` — `DataLoaderService`
+- **Input**: path to `data/dataset.npz`, batch_size, window_size from config
+- **Output**: `DataBundle` (train/val/test `DataLoader` objects + raw arrays for visualization)
 - **Logic**:
-  - `N_amp = gaussian_amp + burst_amp`
-  - `N_phase = gaussian_phase + burst_phase`
-  - `s_noisy = (A + N_amp) · sin(2π·f·t + φ + N_phase)`
-  - Burst events generated with a Poisson-like random mask
+  - Load npz, reconstruct `X`, `C`, `y` splits
+  - Concatenate `X` and `C` → `x_input` shape `(N, 15)` for FCN
+  - Reshape `X` → `(N, seq_len, 1)` for RNN/LSTM
+  - Wrap in `TensorDataset` → `DataLoader(shuffle=True for train, False for val/test)`
 
-### 3.4 `services/windower.py` — `Windower`
-- **Input**: noisy signal vectors (all 5), clean signal vectors (all 5), window size W, random seed
-- **Output**:
-  - `X  (N_windows, W)` — composite noisy windows (source: `s5_noisy` only)
-  - `C  (N_windows, 5)` — one-hot signal selectors (which of s1–s5 to extract)
-  - `y  (N_windows, 1)` — scalar clean label for the C-selected signal at window center
+### 3.3 `services/preprocessor.py` — `Preprocessor`
+- **Input**: raw numpy arrays `X_train`, `X_val`, `X_test`
+- **Output**: normalized arrays, fitted scaler parameters (mean, std)
+- **Logic**: z-score normalization fitted on train set only, applied to val/test
+- **Saves**: scaler params to `results/scaler_params.json` for reproducibility
+
+### 3.4 `models/fcn.py` — `FCNModel(nn.Module)`
+- Input: `(batch, 15)`
+- Layers: `Linear(15,128)` → `ReLU` → `Dropout(p)` → `Linear(128,64)` → `ReLU` → `Dropout(p)` → `Linear(64,1)`
+- L2 via `weight_decay=1e-4` in Adam optimizer (not as a separate layer)
+- All hyperparams from config — no literals in model code
+
+### 3.5 `models/rnn.py` — `RNNModel(nn.Module)`
+- Input: `(batch, seq_len, input_size)`
+- Layers: `nn.RNN(input_size, 64, nonlinearity='tanh', batch_first=True)` → `nn.Linear(64, 1)`
+- Forward: run RNN, extract `output[:, -1, :]` (last time step), apply linear head
+- Many-to-one architecture
+
+### 3.6 `models/lstm.py` — `LSTMModel(nn.Module)`
+- Input: `(batch, seq_len, input_size)`
+- Layers: `nn.LSTM(input_size, 64, batch_first=True)` → `nn.Linear(64, 32)` → `ReLU` → `nn.Linear(32, 1)`
+- Forward: run LSTM, extract `output[:, -1, :]`, apply dense head
+- Many-to-one architecture
+
+### 3.7 `services/trainer.py` — `Trainer`
+- **Input**: model, train DataLoader, val DataLoader, training config
+- **Output**: `TrainingResult` (best_val_mse, epochs_trained, stopped_early, checkpoint_path)
 - **Logic**:
-  - Stride-1 sliding window over `s5_noisy` → `x_w = s5_noisy[k : k+W]`
-  - Per window: sample `i ~ Uniform({0,1,2,3,4})`, build `C = one_hot(i)` — shape `(5,)`
-  - Label: `y = clean_signals[i][k + W//2]` — scalar, the clean value of the chosen signal
-  - Individual noisy signals (s1–s4) are **not** part of the model input; only s5_noisy is used
+  - Epoch loop: forward → MSE loss → backward → Adam step
+  - Val loop every epoch (no grad): compute val MSE
+  - Early stopping: track best val loss, increment patience counter on no improvement
+  - Save best checkpoint: `torch.save(model.state_dict(), checkpoint_path)`
+  - Log per-epoch metrics to CSV
 
-### 3.5 `services/dataset_builder.py` — `DatasetBuilder`
-- **Input**: `X (N, W)`, `C (N, 5)`, `y (N, 1)` from Windower; split ratios
-- **Output**: `data/dataset.npz`, `data/signals_raw.npz`
-- **Logic**: chronological split (no shuffle), save `X`, `C`, `y` per split as compressed npz
-- `.npz` keys per split: `X_train`, `C_train`, `y_train`, `X_val`, `C_val`, `y_val`, `X_test`, `C_test`, `y_test`
+### 3.8 `services/evaluator.py` — `Evaluator`
+- **Input**: model (with loaded checkpoint), test DataLoader
+- **Output**: `EvalResult` (train_mse, val_mse, test_mse)
+- **Logic**: run inference on all splits, compute MSE, build comparison DataFrame
 
-### 3.6 `shared/config.py` — `ConfigManager`
+### 3.9 `services/visualizer.py` — `Visualizer`
+- **Input**: clean signals, noisy signals, predictions from all three models, training logs
+- **Output**: PNG files in `results/`
+- **Logic**: matplotlib figure construction per plot spec in FR-007
+
+### 3.10 `shared/config.py` — `ConfigManager`
 - Loads and validates `config/setup.json` and `config/rate_limits.json`
-- Exposes typed dataclasses for each config section
-- Raises `ConfigValidationError` on bad values
+- Returns typed dataclasses covering: dataset paths, model hyperparams, training params, output paths
+- Raises `ConfigValidationError` on invalid values
 
-### 3.7 `shared/gatekeeper.py` — `ApiGatekeeper`
-- FIFO queue for all external calls
+### 3.11 `shared/gatekeeper.py` — `ApiGatekeeper`
+- FIFO queue for all external/rate-limited calls
 - Rate-limit enforcement from `rate_limits.json`
-- Required by spec; used here for any future external data or model API calls
+- Used for any file I/O or future external model API calls
 
 ---
 
 ## 4. Data Flow
 
 ```
-config/setup.json
+data/dataset.npz
       │
       ▼
-  ConfigManager
+DataLoaderService
+      │  ├─ X_train (N_train, W=10), C_train (N_train, 5), y_train (N_train,1)
+      │  └─ x_input = concat([X, C]) → (N, 15) for FCN
+      │     x_seq   = X.reshape(N, 10, 1)       for RNN/LSTM
+      ▼
+Preprocessor  ── z-score on X features (train stats only)
       │
       ▼
-SignalGenerator ──► s1_clean … s5_clean  shape (10 000,) each
+┌─────────────────────────────────────────────┐
+│              Training Loop (Trainer)         │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+│  │  FCNModel │  │  RNNModel │  │ LSTMModel│  │
+│  │  Adam+L2  │  │   Adam    │  │   Adam   │  │
+│  │  MSE loss │  │  MSE loss │  │ MSE loss │  │
+│  │  EarlyStop│  │  EarlyStop│  │ EarlyStop│  │
+│  └──────────┘  └──────────┘  └──────────┘  │
+└─────────────────────────────────────────────┘
       │
       ▼
-NoiseInjector ───► s1_noisy … s5_noisy  shape (10 000,) each
-      │                │
-      │           s5_noisy = s1_noisy + s2_noisy + s3_noisy + s4_noisy
+Evaluator  ─────► results/comparison_table.csv
       │
       ▼
-Windower ─────────► X  (N_windows, W)   — windows from s5_noisy ONLY
-      │              C  (N_windows, 5)   — one-hot signal selector
-      │              y  (N_windows, 1)   — scalar: clean value of C-selected signal
-      ▼
-DatasetBuilder ───► data/dataset.npz    (X_train, C_train, y_train, …)
-                    data/signals_raw.npz
-                    results/*.png
+Visualizer ─────► results/clean_noisy_predicted.png
+                  results/loss_curves_<model>.png
+                  results/mse_comparison.png
+                  results/residuals_<model>.png
+                  results/pred_vs_actual.png
 ```
 
 ---
 
-## 5. Noise Model Detail
+## 5. Input Encoding per Model
 
 ```
-For signal i with amplitude A_i, frequency f_i, phase φ_i:
+For window k with window size W=10 and C = [0,1,0,0,0]:
 
-  g_amp(t)   ~ N(0, σ_amp_i²)          # per-sample Gaussian
-  b_amp(t)   = M(t) · U(amp_mag)        # burst mask × uniform magnitude
-  N_amp(t)   = g_amp(t) + b_amp(t)
+FCN INPUT (flat):
+  x_input = [s5_noisy[k], …, s5_noisy[k+9],  0, 1, 0, 0, 0]
+  shape    = (15,)
 
-  g_phase(t) ~ N(0, σ_phase_i²)
-  b_phase(t) = M(t) · U(phase_mag)
-  N_phase(t) = g_phase(t) + b_phase(t)
+RNN / LSTM INPUT (sequential):
+  x_seq = s5_noisy[k:k+10].reshape(10, 1)    ← sequence of 10 scalar samples
+  C is prepended as the first time-step features OR concatenated at each step
+  shape = (10, 1) or (10, 6) depending on C injection strategy
+  (configuration choice — document in PRD_rnn.md / PRD_lstm.md)
 
-  s_noisy_i(t) = (A_i + N_amp(t)) · sin(2π · f_i · t + φ_i + N_phase(t))
-
-Burst mask M(t): binary array; bursts placed with probability p per sample,
-each burst lasting duration ~ Uniform(d_min, d_max) samples.
+LABEL:
+  y = s2_clean[k + 5]     ← clean s2 value at window center
+  shape = (1,)
 ```
 
 ---
 
-## 6. Context Window Detail
+## 6. Model Hyperparameter Config (`config/setup.json` additions)
 
-```
-For window starting at index k:
-
-  ── INPUT ────────────────────────────────────────────────────────────
-  x_w = s5_noisy[k : k+W]          shape (W,)   ← composite noisy ONLY
-
-  i   ~ Uniform({0, 1, 2, 3, 4})                ← random signal index
-  C   = one_hot(i)                  shape (5,)   ← signal selector
-        C[j] = 1 if j == i, else 0
-
-  At model training time the full input is formed by concatenation:
-  x_input = concat([x_w, C])        shape (W+5,) = (15,)
-
-  ── LABEL ────────────────────────────────────────────────────────────
-  signals_clean = [s1_clean, s2_clean, s3_clean, s4_clean, s5_clean]
-
-  y = signals_clean[i][k + W//2]   shape (1,)   ← scalar clean value
-                                                    of the selected signal
-
-  ── STORAGE IN .npz ──────────────────────────────────────────────────
-  X[k]  = x_w          (W,)
-  C[k]  = C            (5,)          stored separately — NOT concatenated
-  y[k]  = y            (1,)
-
-  Model concatenates X and C itself at forward-pass time.
-
-  ── EXAMPLE ──────────────────────────────────────────────────────────
-  k=0, i=1 (s2 selected):
-    x_w  = s5_noisy[0:10]           10 composite noisy samples
-    C    = [0, 1, 0, 0, 0]          "extract s2"
-    y    = s2_clean[5]              clean s2 value at sample 5
+```json
+{
+  "training": {
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "max_epochs": 200,
+    "early_stopping_patience": 10,
+    "val_split": 0.20,
+    "random_seed": 42
+  },
+  "fcn": {
+    "hidden_sizes": [128, 64],
+    "dropout_rate": 0.1,
+    "output_size": 1
+  },
+  "rnn": {
+    "hidden_size": 64,
+    "nonlinearity": "tanh",
+    "num_layers": 1,
+    "output_size": 1
+  },
+  "lstm": {
+    "hidden_size": 64,
+    "num_layers": 1,
+    "dense_hidden_size": 32,
+    "output_size": 1
+  },
+  "output": {
+    "results_dir": "results/",
+    "checkpoint_dir": "results/checkpoints/",
+    "fcn_checkpoint": "results/checkpoints/fcn_best.pt",
+    "rnn_checkpoint": "results/checkpoints/rnn_best.pt",
+    "lstm_checkpoint": "results/checkpoints/lstm_best.pt"
+  }
+}
 ```
 
 ---
@@ -221,31 +268,41 @@ For window starting at index k:
 
 | File | Est. lines |
 |------|-----------|
-| sdk.py | ~80 |
-| signal_generator.py | ~90 |
-| noise_injector.py | ~120 |
-| windower.py | ~90 |
-| dataset_builder.py | ~100 |
-| config.py | ~100 |
-| gatekeeper.py | ~120 |
+| sdk.py | ~90 |
+| models/fcn.py | ~70 |
+| models/rnn.py | ~70 |
+| models/lstm.py | ~80 |
+| services/data_loader.py | ~100 |
+| services/preprocessor.py | ~80 |
+| services/trainer.py | ~140 |
+| services/evaluator.py | ~90 |
+| services/visualizer.py | ~140 |
+| shared/config.py | ~130 |
+| shared/gatekeeper.py | ~120 |
+| shared/version.py | ~20 |
+| constants.py | ~40 |
 | main.py | ~60 |
-| constants.py | ~30 |
 
-All under 150 — no splits needed at this scope.
+All under 150. `trainer.py` and `visualizer.py` are close — split into mixins if exceeded.
 
 ---
 
-## 8. Testing Strategy (TDD)
+## 8. Testing Strategy (TDD — RED → GREEN → REFACTOR)
 
-| Test file | What it covers |
-|-----------|---------------|
-| `test_signal_generator.py` | Correct amplitudes, frequencies, phases; composite = sum |
-| `test_noise_injector.py` | Noise shape, Gaussian distribution params, burst mask properties |
-| `test_windower.py` | Window count, one-hot validity, feature shape |
-| `test_dataset_builder.py` | Split sizes, npz keys, shape correctness |
-| `test_config.py` | Load, validate, reject bad config |
-| `test_sdk.py` | End-to-end DatasetSDK call returns correct result |
-| `test_pipeline.py` (integration) | Full pipeline: config → .npz files exist |
+| Test file | Covers |
+|-----------|--------|
+| `test_fcn.py` | Forward pass shape, dropout, weight decay, no-NaN output |
+| `test_rnn.py` | Forward pass shape, last-hidden-state extraction, tanh activations |
+| `test_lstm.py` | Forward pass shape, last-output extraction, dense head |
+| `test_data_loader.py` | DataLoader batch shape, concatenation, reshaping, shuffle behavior |
+| `test_preprocessor.py` | Z-score stats, no data leakage from val/test into train fit |
+| `test_trainer.py` | Loss decreases over epochs, early stopping fires at correct patience |
+| `test_evaluator.py` | MSE computation, comparison table shape and columns |
+| `test_visualizer.py` | Files created, figure dimensions, no errors on mock data |
+| `test_config.py` | Load, validate, reject bad values, all new training/model fields |
+| `test_gatekeeper.py` | Execute, retry, queue depth, logging |
+| `test_sdk.py` | Orchestration calls all services, returns correct result types |
+| `test_pipeline.py` (integration) | Full run: load → train → eval → plot → files exist |
 
 Target: ≥ 85% coverage enforced by `fail_under = 85`.
 
@@ -253,8 +310,13 @@ Target: ≥ 85% coverage enforced by `fail_under = 85`.
 
 ## 9. Visualisations (saved to `results/`)
 
-1. `results/clean_signals.png` — all 5 clean signals, time-domain overlay
-2. `results/noisy_vs_clean.png` — side-by-side per signal (clean vs noisy)
-3. `results/noise_distribution.png` — histogram of N_amp and N_phase per signal
-4. `results/frequency_spectrum.png` — FFT magnitude spectrum (clean + noisy)
-5. `results/burst_events.png` — burst mask overlay on one signal
+1. `results/clean_noisy_predicted.png` — **mandatory** — clean + noisy + all 3 predictions overlaid
+2. `results/loss_curves_fcn.png` — train vs. val MSE per epoch for FCN
+3. `results/loss_curves_rnn.png` — train vs. val MSE per epoch for RNN
+4. `results/loss_curves_lstm.png` — train vs. val MSE per epoch for LSTM
+5. `results/mse_comparison.png` — grouped bar chart: train/val/test MSE per model
+6. `results/residuals_fcn.png` — residuals (y_pred - y_true) for FCN on test set
+7. `results/residuals_rnn.png` — residuals for RNN
+8. `results/residuals_lstm.png` — residuals for LSTM
+9. `results/pred_vs_actual.png` — scatter: predicted vs. actual (all 3 models, 3 panels)
+10. `results/sensitivity/` — OAT parameter sweep plots (heatmaps, line charts)

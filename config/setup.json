@@ -1,8 +1,10 @@
 {
   "dataset": {
+    "path": "data/dataset.npz",
     "duration_sec": 10,
     "sample_rate_hz": 1000,
     "window_size": 10,
+    "selector_size": 5,
     "train_ratio": 0.70,
     "val_ratio": 0.15,
     "test_ratio": 0.15,
@@ -26,9 +28,41 @@
       "phase_magnitude": 0.3
     }
   },
+  "training": {
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "max_epochs": 200,
+    "early_stopping_patience": 10,
+    "val_split": 0.20,
+    "random_seed": 42
+  },
+  "fcn": {
+    "hidden_sizes": [128, 64],
+    "dropout_rate": 0.1,
+    "output_size": 1
+  },
+  "rnn": {
+    "hidden_size": 64,
+    "nonlinearity": "tanh",
+    "num_layers": 1,
+    "output_size": 1
+  },
+  "lstm": {
+    "hidden_size": 64,
+    "num_layers": 1,
+    "dense_hidden_size": 32,
+    "output_size": 1
+  },
   "output": {
     "dataset_path": "data/dataset.npz",
     "raw_signals_path": "data/signals_raw.npz",
-    "results_dir": "results/"
+    "results_dir": "results/",
+    "checkpoint_dir": "results/checkpoints/",
+    "fcn_checkpoint": "results/checkpoints/fcn_best.pt",
+    "rnn_checkpoint": "results/checkpoints/rnn_best.pt",
+    "lstm_checkpoint": "results/checkpoints/lstm_best.pt",
+    "comparison_table_path": "results/comparison_table.csv",
+    "scaler_params_path": "results/scaler_params.json"
   }
 }

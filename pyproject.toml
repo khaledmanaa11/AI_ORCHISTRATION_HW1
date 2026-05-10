@@ -1,16 +1,18 @@
 [project]
-name = "signal-dataset"
+name = "neural-signal"
 version = "1.0.0"
-description = "Noisy Sine Signal Dataset Generator"
+description = "Neural Network Signal Regression — FCN, RNN, LSTM"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "jupyter>=1.1.1",
     "matplotlib>=3.10.9",
     "numpy>=2.4.4",
+    "pandas>=3.0.2",
     "plotly>=6.7.0",
     "scipy>=1.17.1",
     "seaborn>=0.13.2",
+    "torch>=2.11.0",
 ]
 
 [dependency-groups]
@@ -26,7 +28,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.scripts]
-signal-dataset = "signal_dataset.main:main"
+neural-signal = "neural_signal.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/neural_signal"]
 
 [tool.ruff]
 line-length = 100
@@ -42,7 +47,13 @@ addopts = "--cov=src --cov-report=term-missing"
 
 [tool.coverage.run]
 source = ["src"]
-omit = ["src/signal_dataset/main.py", "src/signal_dataset/__main__.py", "src/signal_dataset/visualize.py", "*/tests/*"]
+omit = [
+    "src/neural_signal/main.py",
+    "src/signal_dataset/main.py",
+    "src/signal_dataset/__main__.py",
+    "src/signal_dataset/visualize.py",
+    "*/tests/*",
+]
 
 [tool.coverage.report]
 fail_under = 85

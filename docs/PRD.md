@@ -1,180 +1,216 @@
-# PRD — Noisy Sine Signal Dataset Generator
+# PRD — Neural Network Signal Regression (FCN · RNN · LSTM)
 
 **Version:** 1.00
 **Date:** 2026-05-10
 **Author:** Khaled Mnaa
+**Course:** AI Orchestration — Dr. Segal Yoram
 **Status:** Awaiting Approval
 
 ---
 
 ## 1. Purpose
 
-Build a labeled dataset from four pure sine waves and their composite sum, each corrupted by
-amplitude and phase noise (Gaussian white noise + burst noise), windowed with a one-hot context
-selector. The dataset will serve as training/evaluation data for RNN, FC, and LSTM models whose
-task is to recover the original clean signal from the noisy composite.
+Train and compare three neural network architectures on the noisy sine-signal dataset generated
+in HW1 Phase 1. Each model learns to predict the **clean signal value** from a noisy composite
+window plus a one-hot signal selector. The three architectures are:
+
+| Model | Acronym | Key Characteristic |
+|-------|---------|-------------------|
+| Fully Connected Network | FCN | Dense layers, no temporal memory |
+| Vanilla Recurrent Neural Network | RNN | Shared weights across time steps, tanh |
+| Long Short-Term Memory | LSTM | Gated memory, richer temporal modeling |
 
 ---
 
 ## 2. Background & Motivation
 
-Signal separation under noise is a core problem in time-series learning. Using analytically defined
-sine components with controlled noise allows precise ground-truth comparison and reproducible
-benchmarking across neural architectures.
+The dataset (from Phase 1) consists of:
+- `X` — sliding windows of the composite noisy signal `s5_noisy`, shape `(N, W)` where `W=10`
+- `C` — one-hot signal selectors of length 5, shape `(N, 5)`
+- `y` — scalar clean value of the C-selected signal at window center, shape `(N, 1)`
 
-The four frequencies (5 Hz, 15 Hz, 50 Hz, 100 Hz) were selected because they span two decades of
-frequency range, have distinct amplitude profiles, and will stress-test the frequency selectivity of
-RNN/LSTM models.
+At model forward-pass time the model input is `concat([X_window, C])` → shape `(15,)` for FCN,
+or the window is reshaped to `(seq_len, features)` for RNN/LSTM.
 
----
-
-## 3. Signals
-
-| ID | Formula | Amplitude | Frequency (Hz) | Phase (rad) |
-|----|---------|-----------|----------------|-------------|
-| s1 | 2.0 · sin(2π · 5 · t)         | 2.0 | 5   | 0     |
-| s2 | 1.5 · sin(2π · 15 · t + π/4)  | 1.5 | 15  | π/4   |
-| s3 | 0.8 · sin(2π · 50 · t)         | 0.8 | 50  | 0     |
-| s4 | 0.3 · sin(2π · 100 · t)        | 0.3 | 100 | 0     |
-| s5 | s1 + s2 + s3 + s4 (composite)  | —   | —   | —     |
+The goal is to benchmark which architecture best recovers the clean signal under this
+conditioning setup, using MSE as the evaluation metric.
 
 ---
 
-## 4. Dataset Generation Pipeline
+## 3. Scope
 
-### 4.1 Time Axis
-- Duration: 10 seconds
-- Sampling frequency: 1 000 Hz
-- Total samples: 10 000 per signal
-- `t = [0, 0.001, 0.002, …, 9.999]` (shape: `(10 000,)`)
+### In Scope
+- Loading the pre-generated `data/dataset.npz` (X, C, y splits)
+- Preprocessing: normalization, tensor conversion, DataLoader construction
+- FCN model: Dense(128,ReLU) → Dense(64,ReLU) → Dense(1,Linear), Dropout(0.1), L2 weight decay 1e-4
+- Vanilla RNN model: RNN(hidden=64, tanh) → FC(1), many-to-one (last hidden state)
+- LSTM model: LSTM(hidden=64) → Dense(32,ReLU) → Dense(1,Linear), many-to-one
+- Training pipeline: Adam (lr=0.001), MSE loss, batch size 64, validation split 20%, early stopping
+- Evaluation: train MSE, val MSE, final test MSE, per-epoch loss curves
+- Unified visualization: "Clean vs. Noisy vs. Predicted" — all three models on one graph
+- Full SDK architecture, ApiGatekeeper, TDD, Ruff compliance, uv package manager
+- OAT parameter sensitivity analysis (window_size, hidden_size, lr, dropout, batch_size)
+- Jupyter notebook with results and statistical comparison
+- Per-algorithm PRDs (docs/PRD_fcn.md, docs/PRD_rnn.md, docs/PRD_lstm.md)
+- README, API docs, prompt engineering log
 
-### 4.2 Clean Signal Vectors
-Five vectors of shape `(10 000,)`:
-- `s1_clean, s2_clean, s3_clean, s4_clean` — individual components
-- `s5_clean = s1 + s2 + s3 + s4` — composite
-
-### 4.3 Noise Model
-For each signal `si`, the noisy version is:
-
-```
-s_noisy(t) = (A_i + N_amp(t)) · sin(2π · f_i · t + φ_i + N_phase(t))
-```
-
-Where the noise terms are a combination of:
-
-| Term | Type | Description |
-|------|------|-------------|
-| `N_amp` | Gaussian white noise | `σ_amp` configurable per signal |
-| `N_amp` | Burst noise | Random-duration additive amplitude spikes |
-| `N_phase` | Gaussian white noise | `σ_phase` configurable per signal |
-| `N_phase` | Burst noise | Random-duration phase perturbations |
-
-Noise parameters come from `config/setup.json` — never hardcoded.
-
-### 4.4 Context Window + One-Hot Signal Selector
-
-**Step 1 — Window from composite noisy signal only:**
-- Window size: `W = 10` samples (configurable)
-- The input window is always extracted from **`s5_noisy`** (the composite of all four noisy components):
-  `x_w = s5_noisy[t_i : t_i+W]` — shape `(W,)`
-- The individual noisy signals are **never** directly exposed to the model as input
-
-**Step 2 — Signal selector vector `C`:**
-- `C` is a random one-hot vector of length **5** (one entry per signal: s1, s2, s3, s4, s5):
-  `C = one_hot(i)` where `i ~ Uniform({0, 1, 2, 3, 4})` — shape `(5,)`
-- `C[i] = 1` means "extract the clean version of signal `i` from this window"
-- `C` acts as a conditioning signal telling the model which component to isolate
-
-**Step 3 — Dataset sample construction:**
-- Each dataset sample is the pair `(x_w, C)` stored separately:
-  - `X_window[k] = x_w` — shape `(W,)` — the composite noisy window
-  - `C[k]` — shape `(5,)` — the one-hot signal selector
-- At model training time, `x_w` and `C` are concatenated to form the full input:
-  `x_input = concat([x_w, C])` — shape `(W + 5,)` = `(15,)`
-
-### 4.5 Labels (Ground Truth)
-- The label is the **scalar** clean value of the **C-selected signal** at the window center:
-  `y[k] = clean_signals[argmax(C[k])][t_i + W//2]` — shape `(1,)` (scalar per sample)
-- Because `C` is known at dataset-build time, we can always retrieve the exact ground truth
-- Example: if `C = [0, 1, 0, 0, 0]` → label = `s2_clean[t_i + W//2]`
-
-### 4.6 Dataset Output
-| Split | Fraction | Purpose |
-|-------|----------|---------|
-| Train | 70% | Model training |
-| Val   | 15% | Hyperparameter tuning |
-| Test  | 15% | Final evaluation |
-
-Saved as:
-- `data/dataset.npz` — compressed numpy arrays:
-  - `X_train`, `X_val`, `X_test` — composite noisy windows, shape `(N_split, W)`
-  - `C_train`, `C_val`, `C_test` — one-hot signal selectors, shape `(N_split, 5)`
-  - `y_train`, `y_val`, `y_test` — scalar labels (clean value of selected signal), shape `(N_split, 1)`
-- `data/signals_raw.npz` — all clean and noisy signal vectors for analysis
+### Out of Scope
+- Transformer / attention architectures
+- Hyperparameter search / AutoML
+- Real-time streaming inference
+- GUI frontend
+- Re-generating the dataset (Phase 1 already complete)
 
 ---
 
-## 5. Configuration
+## 4. Functional Requirements
 
-All parameters in `config/setup.json`:
+### FR-001: Data Loading
+- System shall load `data/dataset.npz` using the DataLoaderService
+- System shall concatenate X and C into model input: `x_input = concat([X_window, C])` → `(15,)`
+- System shall wrap train/val/test arrays in PyTorch `TensorDataset` and `DataLoader`
+- Batch size shall be read from `config/setup.json` (default 64)
+- System shall apply z-score normalization to X features using train-set statistics only
 
-```json
-{
-  "dataset": {
-    "duration_sec": 10,
-    "sample_rate_hz": 1000,
-    "window_size": 10,
-    "train_ratio": 0.70,
-    "val_ratio": 0.15,
-    "test_ratio": 0.15,
-    "random_seed": 42
-  },
-  "signals": [
-    {"id": "s1", "amplitude": 2.0, "frequency_hz": 5,   "phase_rad": 0},
-    {"id": "s2", "amplitude": 1.5, "frequency_hz": 15,  "phase_rad": 0.7854},
-    {"id": "s3", "amplitude": 0.8, "frequency_hz": 50,  "phase_rad": 0},
-    {"id": "s4", "amplitude": 0.3, "frequency_hz": 100, "phase_rad": 0}
-  ],
-  "noise": {
-    "gaussian": {
-      "sigma_amp":   [0.05, 0.05, 0.03, 0.02],
-      "sigma_phase": [0.05, 0.05, 0.03, 0.02]
-    },
-    "burst": {
-      "probability": 0.01,
-      "duration_range_samples": [5, 20],
-      "amp_magnitude": 0.5,
-      "phase_magnitude": 0.3
-    }
-  }
-}
-```
+### FR-002: FCN Model (`models/fcn.py`)
+- Architecture: `Input(15)` → `Dense(128, ReLU)` → `Dropout(0.1)` → `Dense(64, ReLU)` → `Dropout(0.1)` → `Dense(1, Linear)`
+- L2 weight decay `1e-4` applied via optimizer `weight_decay` parameter
+- Dropout rate configurable from `config/setup.json`
+- Input shape: `(batch, 15)` — flat concatenated window + selector
+- Output shape: `(batch, 1)` — scalar prediction
+
+### FR-003: Vanilla RNN Model (`models/rnn.py`)
+- Architecture: `RNN(input_size=1, hidden_size=64, nonlinearity='tanh', batch_first=True)` → `Linear(64, 1)`
+- Many-to-one: extract only last hidden state `h_t[:, -1, :]`
+- Input shape: `(batch, seq_len=10, 1)` — window reshaped; C concatenated as extra feature channels or pre-pended
+- Output shape: `(batch, 1)`
+
+### FR-004: LSTM Model (`models/lstm.py`)
+- Architecture: `LSTM(input_size=1, hidden_size=64, batch_first=True)` → `Linear(64, 32)` → `ReLU` → `Linear(32, 1)`
+- Many-to-one: extract only last output `out[:, -1, :]`
+- Input shape: `(batch, seq_len=10, 1)`
+- Output shape: `(batch, 1)`
+
+### FR-005: Training Pipeline (`services/trainer.py`)
+- Optimizer: Adam, initial lr=0.001, weight_decay=1e-4 for FCN
+- Loss: MSE (`nn.MSELoss`)
+- Batch size: 64 (from config)
+- Validation split: 20% of training data held out before training (from pre-split in dataset.npz)
+- Early stopping: monitor validation loss, patience configurable (default=10), stop if no improvement
+- Maximum epochs: configurable (default=200)
+- Checkpoint: save best model weights by minimum validation MSE
+- Log per-epoch train/val loss to `results/training_log_<model>.csv`
+
+### FR-006: Evaluation (`services/evaluator.py`)
+- Compute final train, validation, and test MSE for each model
+- Produce comparison table: `model | train_mse | val_mse | test_mse | epochs_trained | stopped_early`
+- Save table to `results/comparison_table.csv`
+
+### FR-007: Visualization (`services/visualizer.py`)
+- **Plot 1 (mandatory)**: "Clean vs. Noisy vs. Predicted" — single figure, overlay:
+  - Clean signal (green, solid)
+  - Noisy signal (grey, dashed)
+  - FCN prediction (red)
+  - RNN prediction (orange)
+  - LSTM prediction (purple)
+  - Save to `results/clean_noisy_predicted.png`
+- **Plot 2**: Training loss curves per model (train vs. val per epoch), saved to `results/loss_curves_<model>.png`
+- **Plot 3**: MSE comparison bar chart (all three models, train/val/test), saved to `results/mse_comparison.png`
+- **Plot 4**: Residuals plot per model, saved to `results/residuals_<model>.png`
+- **Plot 5**: Scatter plot of predicted vs. actual for all three models, saved to `results/pred_vs_actual.png`
+
+### FR-008: SDK & Architecture
+- All logic exposed through `sdk/sdk.py` as `NeuralSignalSDK`
+- `NeuralSignalSDK.run_all()` trains and evaluates all three models sequentially
+- `NeuralSignalSDK.train_model(model_name)` trains a single model by name
+- `NeuralSignalSDK.evaluate_all()` loads checkpoints and re-evaluates
+- No business logic in `main.py` — CLI calls SDK only
+- All config loaded from `config/setup.json` and `config/rate_limits.json`
+- ApiGatekeeper wraps any external or file I/O that is rate-limited
+
+### FR-009: Parameter Sensitivity (OAT)
+- Vary one parameter at a time: window_size, hidden_size, learning_rate, dropout_rate, batch_size
+- For each parameter value: train all three models, record val MSE
+- Save sensitivity results to `results/sensitivity/`
+- Plot heatmaps and line charts of MSE vs. parameter value
 
 ---
 
-## 6. Deliverables
-1. `data/dataset.npz` — train/val/test splits ready for model ingestion
-2. `data/signals_raw.npz` — raw clean and noisy vectors
-3. `results/` — visualization plots (time-domain, frequency-domain, noise distribution)
-4. `notebooks/dataset_analysis.ipynb` — exploratory analysis notebook
-5. Full test suite with ≥ 85% coverage
+## 5. Non-Functional Requirements
+
+| ID | Requirement | Target |
+|----|-------------|--------|
+| NFR-001 | Test coverage | ≥ 85% (pytest-cov, fail_under=85) |
+| NFR-002 | Linting | 0 Ruff errors |
+| NFR-003 | File length | ≤ 150 lines per file |
+| NFR-004 | Package manager | uv only |
+| NFR-005 | No hardcoded values | All from config JSON |
+| NFR-006 | Secrets | Never in source; `.env-example` committed |
+| NFR-007 | Reproducibility | Fixed random seed for weight init and data split |
+| NFR-008 | Framework | PyTorch (torch, torch.nn, torch.optim) |
 
 ---
 
-## 7. Out of Scope (this phase)
-- RNN / FC / LSTM model training (next phase)
-- Real-time signal streaming
-- Non-sine waveforms
+## 6. Architecture Constraints
+
+- **Language**: Python 3.10+
+- **Deep Learning**: PyTorch (`torch`, `torch.nn`, `torch.optim`, `torch.utils.data`)
+- **Data**: NumPy, Pandas
+- **Visualization**: Matplotlib, Seaborn
+- **Notebook**: Jupyter
+- **Config**: JSON files in `config/`
+- **Testing**: pytest, pytest-cov, pytest-mock
+- **Linting**: Ruff
+- **Package manager**: uv
+
+---
+
+## 7. Deliverables
+
+| Deliverable | Location |
+|-------------|----------|
+| This PRD | `docs/PRD.md` |
+| Architecture Plan | `docs/PLAN.md` |
+| Task List | `docs/TODO.md` |
+| FCN PRD | `docs/PRD_fcn.md` |
+| RNN PRD | `docs/PRD_rnn.md` |
+| LSTM PRD | `docs/PRD_lstm.md` |
+| Source code | `src/neural_signal/` |
+| Tests | `tests/` |
+| Config | `config/` |
+| Results | `results/` |
+| Notebook | `notebooks/results_analysis.ipynb` |
+| README | `README.md` |
+| Prompt log | `docs/prompt_engineering_log.md` |
 
 ---
 
 ## 8. Acceptance Criteria
-- [ ] All 5 clean signals generated with correct amplitudes, frequencies, and phases
-- [ ] Noisy signals correctly combine Gaussian + burst noise on both amplitude and phase
-- [ ] Windows extracted exclusively from `s5_noisy` (composite noisy signal)
-- [ ] `C` vectors are one-hot of length **5**, selecting a signal index (not a window position)
-- [ ] Labels are scalars: `clean_signals[argmax(C)][center_index]`
-- [ ] Dataset `.npz` stores `X`, `C`, `y` arrays separately per split
-- [ ] `uv run ruff check` → 0 errors
-- [ ] `uv run pytest tests/` → ≥ 85% coverage
-- [ ] At least 3 visualizations saved to `results/`
+
+1. All three models train without NaN/Inf loss
+2. Validation MSE decreases or plateaus via early stopping — no divergence
+3. `results/clean_noisy_predicted.png` saved with all five overlaid signals
+4. `results/comparison_table.csv` contains train/val/test MSE for all three models
+5. `uv run ruff check` returns 0 errors
+6. `uv run pytest tests/ --cov=src --cov-fail-under=85` passes
+7. No secrets committed; `.env-example` present
+8. All files ≤ 150 lines
+9. `uv.lock` committed and reproducible
+10. Prompt engineering log documents all AI-assisted steps
+
+---
+
+## 9. Risk Register
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| RNN gradient vanishing | Medium | High | Gradient clipping, verify tanh outputs |
+| LSTM overfitting | Medium | Medium | Dropout, early stopping |
+| FCN underfitting (no memory) | Low | Medium | Compare MSE; document finding |
+| Window size too small for signal | Medium | High | OAT sweep on window_size |
+| Coverage below 85% | Medium | High | TDD from the start |
+| File exceeds 150 lines | Low | Medium | Ruff enforced, monitor during dev |
+
+---
+
+*Approval required before proceeding to PLAN.md and TODO.md.*

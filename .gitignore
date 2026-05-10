@@ -17,3 +17,4 @@ dist/
 build/
 wheels/
 *.ipynb_checkpoints
+results/checkpoints/

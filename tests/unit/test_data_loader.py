@@ -116,3 +116,21 @@ def test_no_inf_in_train_batch_x(tiny_npz, batch_size_fixture):
     bundle = DataLoaderService(tiny_npz, batch_size_fixture).load()
     xb, _ = next(iter(bundle.train_loader))
     assert not torch.isinf(xb).any()
+
+
+def test_seed_produces_reproducible_train_batches(tiny_npz, batch_size_fixture):
+    """Same seed → identical first shuffle order across two loader instances."""
+    b1 = DataLoaderService(tiny_npz, batch_size_fixture, seed=99).load()
+    b2 = DataLoaderService(tiny_npz, batch_size_fixture, seed=99).load()
+    x1, _ = next(iter(b1.train_loader))
+    x2, _ = next(iter(b2.train_loader))
+    assert torch.allclose(x1, x2)
+
+
+def test_different_seeds_produce_different_batches(tiny_npz, batch_size_fixture):
+    """Different seeds → different shuffle order (almost certain with 200 samples)."""
+    b1 = DataLoaderService(tiny_npz, batch_size_fixture, seed=1).load()
+    b2 = DataLoaderService(tiny_npz, batch_size_fixture, seed=2).load()
+    x1, _ = next(iter(b1.train_loader))
+    x2, _ = next(iter(b2.train_loader))
+    assert not torch.allclose(x1, x2)

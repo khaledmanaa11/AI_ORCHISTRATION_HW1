@@ -47,7 +47,7 @@ class Trainer:
         weight_decay: float = 0.0,
     ) -> TrainingResult:
         """Run the full training loop and return a TrainingResult."""
-        device = torch.device("cpu")
+        device = torch.device(self._cfg.device)
         model.to(device)
         optimizer = torch.optim.Adam(
             model.parameters(), lr=self._cfg.learning_rate, weight_decay=weight_decay
@@ -106,6 +106,10 @@ class Trainer:
                 if training and optimizer is not None:
                     optimizer.zero_grad()
                     loss.backward()
+                    if self._cfg.gradient_clip_norm is not None:
+                        nn.utils.clip_grad_norm_(
+                            model.parameters(), self._cfg.gradient_clip_norm
+                        )
                     optimizer.step()
                 total += loss.item() * len(xb)
                 n += len(xb)

@@ -1,85 +1,30 @@
-"""ConfigManager — loads, parses, and validates config/setup.json and rate_limits.json."""
+"""ConfigManager — loads, parses, and validates config/setup.json."""
 
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from neural_signal.shared.config_types import (
+    AppConfig,
+    ConfigValidationError,
+    FCNConfig,
+    LSTMConfig,
+    OutputConfig,
+    RNNConfig,
+    TrainingConfig,
+)
 
-class ConfigValidationError(Exception):
-    """Raised when a config value fails validation."""
-
-
-@dataclass
-class TrainingConfig:
-    """Hyperparameters for the training loop."""
-
-    batch_size: int
-    learning_rate: float
-    weight_decay: float
-    max_epochs: int
-    early_stopping_patience: int
-    val_split: float
-    random_seed: int
-
-
-@dataclass
-class FCNConfig:
-    """Architecture config for the Fully-Connected Network."""
-
-    hidden_sizes: list[int]
-    dropout_rate: float
-    output_size: int
-
-
-@dataclass
-class RNNConfig:
-    """Architecture config for the Vanilla RNN."""
-
-    hidden_size: int
-    nonlinearity: str
-    num_layers: int
-    output_size: int
-
-
-@dataclass
-class LSTMConfig:
-    """Architecture config for the LSTM."""
-
-    hidden_size: int
-    num_layers: int
-    dense_hidden_size: int
-    output_size: int
-
-
-@dataclass
-class OutputConfig:
-    """Paths for saving results, checkpoints, and plots."""
-
-    results_dir: str
-    checkpoint_dir: str
-    fcn_checkpoint: str
-    rnn_checkpoint: str
-    lstm_checkpoint: str
-    comparison_table_path: str
-    scaler_params_path: str
-
-
-@dataclass
-class AppConfig:
-    """Top-level application configuration."""
-
-    training: TrainingConfig
-    fcn: FCNConfig
-    rnn: RNNConfig
-    lstm: LSTMConfig
-    output: OutputConfig
+# Re-export so existing `from neural_signal.shared.config import X` still works.
+__all__ = [
+    "AppConfig", "ConfigValidationError", "ConfigManager",
+    "FCNConfig", "LSTMConfig", "OutputConfig", "RNNConfig", "TrainingConfig",
+]
 
 
 class ConfigManager:
-    """Loads config/setup.json and config/rate_limits.json into validated dataclasses."""
+    """Loads config/setup.json and rate_limits.json into validated dataclasses."""
 
     def __init__(self, config_path: Path, rate_limits_path: Path) -> None:
         """Initialise with paths to both config files."""
@@ -115,6 +60,8 @@ class ConfigManager:
             early_stopping_patience=raw["early_stopping_patience"],
             val_split=raw["val_split"],
             random_seed=raw["random_seed"],
+            device=raw.get("device", "cpu"),
+            gradient_clip_norm=raw.get("gradient_clip_norm"),
         )
 
     def _parse_fcn(self, raw: dict) -> FCNConfig:
@@ -141,14 +88,18 @@ class ConfigManager:
         )
 
     def _parse_output(self, raw: dict) -> OutputConfig:
+        rd = raw.get("results_dir", "results/")
         return OutputConfig(
-            results_dir=raw["results_dir"],
+            results_dir=rd,
             checkpoint_dir=raw["checkpoint_dir"],
             fcn_checkpoint=raw["fcn_checkpoint"],
             rnn_checkpoint=raw["rnn_checkpoint"],
             lstm_checkpoint=raw["lstm_checkpoint"],
             comparison_table_path=raw["comparison_table_path"],
             scaler_params_path=raw["scaler_params_path"],
+            training_log_fcn=raw.get("training_log_fcn", rd + "training_log_fcn.csv"),
+            training_log_rnn=raw.get("training_log_rnn", rd + "training_log_rnn.csv"),
+            training_log_lstm=raw.get("training_log_lstm", rd + "training_log_lstm.csv"),
         )
 
     def _validate(self, cfg: AppConfig) -> None:

@@ -47,10 +47,11 @@ class DataLoaderService:
     RNN/LSTM input: X_window reshaped → shape (N, window_size, 1)
     """
 
-    def __init__(self, dataset_path: Path, batch_size: int) -> None:
-        """Initialise with dataset path and batch size from config."""
+    def __init__(self, dataset_path: Path, batch_size: int, seed: int = 42) -> None:
+        """Initialise with dataset path, batch size, and RNG seed for reproducibility."""
         self._path = Path(dataset_path)
         self._batch_size = batch_size
+        self._seed = seed
 
     def load(self) -> DataBundle:
         """Load .npz, build tensors, and return a DataBundle with all loaders."""
@@ -118,4 +119,7 @@ class DataLoaderService:
         self, x: torch.Tensor, y: torch.Tensor, shuffle: bool
     ) -> DataLoader:
         ds = TensorDataset(x, y)
-        return DataLoader(ds, batch_size=self._batch_size, shuffle=shuffle)
+        generator = torch.Generator().manual_seed(self._seed) if shuffle else None
+        return DataLoader(
+            ds, batch_size=self._batch_size, shuffle=shuffle, generator=generator
+        )

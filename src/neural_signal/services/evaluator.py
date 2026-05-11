@@ -31,9 +31,10 @@ class Evaluator:
     Loads the best checkpoint from disk before evaluating each model.
     """
 
-    def __init__(self, results_dir: Path) -> None:
-        """Initialise with the directory where comparison_table.csv will be saved."""
+    def __init__(self, results_dir: Path, device: str = "cpu") -> None:
+        """Initialise with results directory and device for inference."""
         self._results_dir = Path(results_dir)
+        self._device = torch.device(device)
         self._criterion = nn.MSELoss()
 
     def evaluate(
@@ -50,7 +51,10 @@ class Evaluator:
         """Load checkpoint, run inference on all splits, return EvalResult."""
         ckpt = Path(checkpoint_path)
         if ckpt.exists():
-            model.load_state_dict(torch.load(ckpt, map_location="cpu", weights_only=True))
+            model.load_state_dict(
+                torch.load(ckpt, map_location=self._device, weights_only=True)
+            )
+        model.to(self._device)
         model.eval()
         return EvalResult(
             model_name=model_name,
@@ -86,6 +90,7 @@ class Evaluator:
         """Compute mean MSE over all batches in loader."""
         total, n = 0.0, 0
         for xb, yb in loader:
+            xb, yb = xb.to(self._device), yb.to(self._device)
             pred = model(xb)
             loss = self._criterion(pred, yb)
             total += loss.item() * len(xb)

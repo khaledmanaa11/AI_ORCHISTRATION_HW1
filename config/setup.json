@@ -35,7 +35,9 @@
     "max_epochs": 200,
     "early_stopping_patience": 10,
     "val_split": 0.20,
-    "random_seed": 42
+    "random_seed": 42,
+    "device": "cpu",
+    "gradient_clip_norm": null
   },
   "fcn": {
     "hidden_sizes": [128, 64],
@@ -63,6 +65,9 @@
     "rnn_checkpoint": "results/checkpoints/rnn_best.pt",
     "lstm_checkpoint": "results/checkpoints/lstm_best.pt",
     "comparison_table_path": "results/comparison_table.csv",
-    "scaler_params_path": "results/scaler_params.json"
+    "scaler_params_path": "results/scaler_params.json",
+    "training_log_fcn": "results/training_log_fcn.csv",
+    "training_log_rnn": "results/training_log_rnn.csv",
+    "training_log_lstm": "results/training_log_lstm.csv"
   }
 }

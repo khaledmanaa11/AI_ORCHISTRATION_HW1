@@ -63,8 +63,63 @@ phases from environment setup through final checklist.
 
 ---
 
+---
+
+## Prompt 4 — Neural Signal Pipeline (Phases 10–20)
+
+**Date:** 2026-05-10
+**Prompt Summary:** Extended project with FCN / RNN / LSTM training pipeline. Phases 10–20 covered:
+- Phase 10: FCN model (`Dense 128→64→1`, Dropout 0.1)
+- Phase 11: Vanilla RNN (`hidden=64, tanh`)
+- Phase 12: LSTM (`hidden=64, Dense 32→1`)
+- Phase 13: DataLoaderService (FCN concat `[X, C]`, RNN reshape `[N, 10, 1]`)
+- Phase 14: Preprocessor (z-score on X_train, save params to JSON)
+- Phase 15: Trainer (Adam, MSE, early stopping, CSV log)
+- Phase 16: Evaluator (cold-load checkpoint, compute train/val/test MSE, save CSV)
+- Phase 17: Visualizer (5 plot types: clean/noisy/predicted, loss curves, MSE bar, residuals, scatter)
+- Phase 18: NeuralSignalSDK (orchestrator, single entry point)
+- Phase 19: ConfigManager for neural_signal (AppConfig with FCNConfig, RNNConfig, LSTMConfig)
+- Phase 20: ApiGatekeeper integration, rate_limits.json
+
+**Key decisions:**
+- FCN uses `weight_decay=0.0001`; RNN and LSTM use `weight_decay=0.0`
+- Evaluator does cold-load from checkpoint path before computing MSE
+- Visualizer uses Agg backend (headless), always saves PNG
+- ConfigManager re-exports all dataclass types for backward compat
+
+**Outcome:** 377 tests, 98.37% coverage, 0 ruff errors.
+
+---
+
+## Prompt 5 — Gap Fixes & Phase 21–30 (2026-05-11)
+
+**Date:** 2026-05-11
+**Prompt Summary:** Audited TODO.md, identified 12 gaps and pending phases. Implemented:
+- File size violations: split sdk.py (VizMixin), config.py (config_types), conftest.py, test_config.py
+- Gap 3: gradient clipping in Trainer (`cfg.gradient_clip_norm`)
+- Gap 4: DataLoader reproducibility seed (torch.Generator per loader)
+- Gap 8: training_log paths moved from hardcoded strings to `OutputConfig` fields
+- Gap 10: device handling in Trainer and Evaluator (`cfg.training.device`)
+- Gap 11: val MSE divergence integration tests
+- Gap 12: SensitivityAnalyzer OAT service + 13 unit tests
+- Phase 21: argparse CLI (`--model`, `--config`, `--rate-limits`, `--verbose`)
+- Phase 22: per-algorithm PRDs (PRD_fcn.md, PRD_rnn.md, PRD_lstm.md)
+- Phase 23: cold-load integration tests for all 3 models
+- Gap 6: line style/color tests in test_visualizer.py
+- Gap 7: docs/api_docs.md
+- Phase 26: notebooks/results_analysis.ipynb
+
+**Key decisions:**
+- VizMixin uses `getattr(self, "_train_results", {})` to avoid circular dependency
+- DataLoader generator only set for shuffle=True loaders (val/test stay deterministic)
+- Evaluator accepts optional `device` param (default "cpu") for forward compatibility
+
+**Outcome:** 403 tests, 98.50% coverage, 0 ruff errors.
+
+---
+
 ## AI Model Used
 
 - **Model:** claude-sonnet-4-6
 - **Context:** All code generation, architecture decisions, and TDD cycles performed
-  interactively with the model in a single session.
+  interactively with the model across multiple sessions.

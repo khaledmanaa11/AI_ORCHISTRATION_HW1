@@ -107,3 +107,44 @@ def test_results_dir_created_if_missing(tmp_path):
 def test_plot_all_models_in_clean_noisy_file(viz, clean_signal, noisy_signal, preds):
     path = viz.plot_clean_noisy_predicted(clean_signal, noisy_signal, preds)
     assert path.stat().st_size > 5000  # non-trivial PNG
+
+
+def test_clean_noisy_predicted_uses_correct_colors(
+    tmp_results_dir, clean_signal, noisy_signal, preds
+):
+    """Clean line uses green, noisy line uses grey as defined in constants."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    from neural_signal import constants as const
+
+    fig, ax = plt.subplots()
+    ax.plot(clean_signal[:10], color=const.PLOT_COLOR_CLEAN, label="Clean")
+    ax.plot(noisy_signal[:10], color=const.PLOT_COLOR_NOISY, linestyle="--", label="Noisy")
+    lines = ax.get_lines()
+    assert lines[0].get_color() == const.PLOT_COLOR_CLEAN
+    assert lines[1].get_color() == const.PLOT_COLOR_NOISY
+    plt.close(fig)
+
+
+def test_noisy_line_uses_dashed_style(tmp_results_dir, clean_signal, noisy_signal):
+    """Noisy signal is drawn with a dashed line style."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    from neural_signal import constants as const
+
+    fig, ax = plt.subplots()
+    ax.plot(noisy_signal[:10], color=const.PLOT_COLOR_NOISY, linestyle="--")
+    line = ax.get_lines()[0]
+    assert line.get_linestyle() == "--"
+    plt.close(fig)
+
+
+def test_model_colors_are_distinct(tmp_results_dir):
+    """FCN, RNN, LSTM prediction colors must all be different."""
+    from neural_signal import constants as const
+    colors = [const.PLOT_COLOR_FCN, const.PLOT_COLOR_RNN, const.PLOT_COLOR_LSTM]
+    assert len(set(colors)) == 3

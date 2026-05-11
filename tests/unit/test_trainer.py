@@ -114,3 +114,33 @@ def test_no_nan_in_train_losses(train_cfg, simple_model, tmp_path):
         simple_model, loader, loader
     )
     assert all(v == v for v in result.train_losses)  # NaN check: NaN != NaN
+
+
+def test_gradient_clipping_does_not_crash(tmp_path):
+    """Training with gradient_clip_norm set should complete without error."""
+    cfg = TrainingConfig(
+        batch_size=16, learning_rate=0.01, weight_decay=0.0,
+        max_epochs=3, early_stopping_patience=3,
+        val_split=0.2, random_seed=42, gradient_clip_norm=1.0,
+    )
+    model = nn.Linear(15, 1)
+    loader = _make_loader()
+    result = Trainer(cfg, tmp_path / "ckpt.pt", tmp_path / "log.csv").train(
+        model, loader, loader
+    )
+    assert result.epochs_trained == 3
+
+
+def test_device_cpu_training_completes(tmp_path):
+    """Explicit device='cpu' config should train successfully."""
+    cfg = TrainingConfig(
+        batch_size=16, learning_rate=0.01, weight_decay=0.0,
+        max_epochs=2, early_stopping_patience=3,
+        val_split=0.2, random_seed=42, device="cpu",
+    )
+    model = nn.Linear(15, 1)
+    loader = _make_loader()
+    result = Trainer(cfg, tmp_path / "ckpt.pt", tmp_path / "log.csv").train(
+        model, loader, loader
+    )
+    assert result.best_val_mse < float("inf")

@@ -107,3 +107,13 @@ def test_zero_mse_when_model_predicts_perfectly(tmp_results_dir, tmp_path):
         model, "fcn", tmp_path / "ckpt.pt", loader, loader, loader, 1, False
     )
     assert result.train_mse == pytest.approx(0.0, abs=1e-6)
+
+
+def test_evaluator_with_explicit_cpu_device(simple_model, tmp_results_dir, tmp_path):
+    """Evaluator with device='cpu' should produce finite MSE scores."""
+    loader = _loader()
+    ev = Evaluator(tmp_results_dir, device="cpu")
+    result = ev.evaluate(
+        simple_model, "fcn", tmp_path / "ckpt.pt", loader, loader, loader, 5, False
+    )
+    assert result.test_mse < float("inf")

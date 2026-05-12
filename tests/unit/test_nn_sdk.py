@@ -22,8 +22,9 @@ def _loader(n: int = 60, f: int = 15) -> DataLoader:
 
 
 def _sloader(n: int = 60) -> DataLoader:
+    # Shape (N, seq_len=10, features=6): window(1) + C broadcast(5)
     return DataLoader(
-        TensorDataset(torch.randn(n, 10, 1), torch.randn(n, 1)), batch_size=16, shuffle=False
+        TensorDataset(torch.randn(n, 10, 6), torch.randn(n, 1)), batch_size=16, shuffle=False
     )
 
 
@@ -98,21 +99,59 @@ def test_sdk_evaluate_all(sdk, tmp_path):
     sdk._cfg.output.__dict__["fcn_checkpoint"] = str(tmp_path / "fcn.pt")
     sdk._cfg.output.__dict__["rnn_checkpoint"] = str(tmp_path / "rnn.pt")
     sdk._cfg.output.__dict__["lstm_checkpoint"] = str(tmp_path / "lstm.pt")
+    sdk._cfg.output.__dict__["scaler_params_path"] = str(tmp_path / "sc.json")
+    sdk._cfg.output.__dict__["training_log_fcn"] = str(tmp_path / "log_fcn.csv")
+    sdk._cfg.output.__dict__["training_log_rnn"] = str(tmp_path / "log_rnn.csv")
+    sdk._cfg.output.__dict__["training_log_lstm"] = str(tmp_path / "log_lstm.csv")
     with patch.object(sdk, "_load_data", return_value=bundle):
+        for name in ("fcn", "rnn", "lstm"):
+            sdk.train_model(name)
         results = sdk.evaluate_all()
     assert len(results) == 3
     assert all(isinstance(v, EvalResult) for v in results.values())
 
 
-def test_sdk_run_all(sdk, tmp_path):
-    bundle = _make_bundle()
+def _patch_output(sdk, tmp_path) -> None:
     sdk._cfg.output.__dict__["results_dir"] = str(tmp_path) + "/"
     sdk._cfg.output.__dict__["comparison_table_path"] = str(tmp_path / "table.csv")
     sdk._cfg.output.__dict__["fcn_checkpoint"] = str(tmp_path / "fcn.pt")
     sdk._cfg.output.__dict__["rnn_checkpoint"] = str(tmp_path / "rnn.pt")
     sdk._cfg.output.__dict__["lstm_checkpoint"] = str(tmp_path / "lstm.pt")
     sdk._cfg.output.__dict__["scaler_params_path"] = str(tmp_path / "scaler.json")
+
+def test_sdk_run_all(sdk, tmp_path):
+    from neural_signal.sdk.sdk import RunResult
+    bundle = _make_bundle()
+    _patch_output(sdk, tmp_path)
     with patch.object(sdk, "_load_data", return_value=bundle):
-        results = sdk.run_all()
-    assert len(results) == 3
+        result = sdk.run_all()
+    assert isinstance(result, RunResult)
     assert (tmp_path / "table.csv").exists()
+
+
+def test_sdk_run_all_returns_run_result(sdk, tmp_path):
+    from neural_signal.sdk.sdk import RunResult
+    bundle = _make_bundle()
+    _patch_output(sdk, tmp_path)
+    with patch.object(sdk, "_load_data", return_value=bundle):
+        result = sdk.run_all()
+    assert isinstance(result, RunResult)
+
+
+def test_run_result_has_comparison_df(sdk, tmp_path):
+    import pandas as pd
+    bundle = _make_bundle()
+    _patch_output(sdk, tmp_path)
+    with patch.object(sdk, "_load_data", return_value=bundle):
+        result = sdk.run_all()
+    assert isinstance(result.comparison_df, pd.DataFrame)
+
+
+def test_sdk_raises_on_unknown_model_name(sdk):
+    with pytest.raises(ValueError, match="Unknown model"):
+        sdk.train_model("invalid_model")
+
+
+def test_sdk_get_version_returns_string(sdk):
+    version = sdk.get_version()
+    assert isinstance(version, str) and len(version) > 0

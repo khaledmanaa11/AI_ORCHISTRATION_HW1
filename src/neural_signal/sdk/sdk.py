@@ -4,18 +4,21 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pandas as pd
 import torch
 
 from neural_signal import constants as const
 from neural_signal.models.fcn import FCNModel
 from neural_signal.models.lstm import LSTMModel
 from neural_signal.models.rnn import RNNModel
+from neural_signal.sdk._types import RunResult
 from neural_signal.sdk._viz import VizMixin
 from neural_signal.services.data_loader import DataBundle, DataLoaderService
 from neural_signal.services.evaluator import EvalResult, Evaluator
 from neural_signal.services.preprocessor import Preprocessor
 from neural_signal.services.trainer import Trainer, TrainingResult
 from neural_signal.shared.config import AppConfig, ConfigManager
+from neural_signal.shared.version import __version__
 
 
 class NeuralSignalSDK(VizMixin):
@@ -34,16 +37,30 @@ class NeuralSignalSDK(VizMixin):
         self._train_results: dict[str, TrainingResult] = {}
         self._eval_results: dict[str, EvalResult] = {}
 
-    def run_all(self) -> dict[str, EvalResult]:
+    def run_all(self) -> RunResult:
         """Train and evaluate all three models; save all results."""
         torch.manual_seed(self._cfg.training.random_seed)
         self._bundle = self._load_data()
         for name in const.MODEL_NAMES:
             self._train_results[name] = self.train_model(name)
-        return self.evaluate_all()
+        eval_dict = self.evaluate_all()
+        cmp_path = Path(self._cfg.output.comparison_table_path)
+        df = pd.read_csv(cmp_path) if cmp_path.exists() else pd.DataFrame()
+        return RunResult(
+            fcn_eval=eval_dict[const.MODEL_FCN],
+            rnn_eval=eval_dict[const.MODEL_RNN],
+            lstm_eval=eval_dict[const.MODEL_LSTM],
+            comparison_df=df,
+        )
+
+    def get_version(self) -> str:
+        """Return the current package version string."""
+        return __version__
 
     def train_model(self, model_name: str) -> TrainingResult:
         """Train a single model by name ('fcn' | 'rnn' | 'lstm')."""
+        if model_name not in const.MODEL_NAMES:
+            raise ValueError(f"Unknown model '{model_name}'. Choose from {const.MODEL_NAMES}.")
         if self._bundle is None:
             self._bundle = self._load_data()
         bundle = self._bundle
@@ -71,12 +88,18 @@ class NeuralSignalSDK(VizMixin):
             model, train_loader, val_loader, ckpt, _ = self._build_model_resources(
                 name, bundle, cfg
             )
+            ckpt_path = Path(ckpt)
+            if not ckpt_path.exists():
+                raise FileNotFoundError(
+                    f"Checkpoint for '{name}' not found: {ckpt_path}. "
+                    "Run train_model() or run_all() first."
+                )
             tr = self._train_results.get(name)
             test_loader = (
                 bundle.test_loader if name == const.MODEL_FCN else bundle.seq_test_loader
             )
             res = evaluator.evaluate(
-                model, name, Path(ckpt),
+                model, name, ckpt_path,
                 train_loader, val_loader, test_loader,
                 epochs_trained=tr.epochs_trained if tr else 0,
                 stopped_early=tr.stopped_early if tr else False,

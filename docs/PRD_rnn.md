@@ -4,9 +4,12 @@
 The RNN model processes a window of noisy signal samples as a temporal sequence, mapping `(N, window_size, 1)` inputs to a single denoised output value using a recurrent hidden state.
 
 ## Input Data
-- **Feature tensor**: `X_window` reshaped to `[N, window_size=10, 1]` (sequence of scalar samples)
+- **Feature tensor**: `X_window` broadcast-concatenated with `C` → `[N, window_size=10, 6]`
+  - `X_window` shape `(N, 10)` reshaped to `(N, 10, 1)`; `C` shape `(N, 5)` broadcast to `(N, 10, 5)`; concatenated on feature axis → `(N, 10, 6)`
+- **C injection strategy**: `"broadcast"` — one-hot signal selector (5 elements) appended to every time-step, giving `input_size = 6`
 - **Target**: clean signal value `y` at window centre → `[N, 1]`
-- **Source**: `data/dataset.npz` keys `X_train`, `y_train` (selector `C` not used)
+- **Source**: `data/dataset.npz` keys `X_train`, `C_train`, `y_train`
+- **Config key**: `config/setup.json → rnn.input_size = 6`, `training.c_injection_strategy = "broadcast"`
 
 ## Output Data
 - **Prediction**: scalar denoised value per window → `[N, 1]` float32
@@ -15,8 +18,9 @@ The RNN model processes a window of noisy signal samples as a temporal sequence,
 
 ## Architecture
 ```
-Input(10, 1) → RNN(hidden=64, tanh, layers=1) → last hidden state → Dense(1)
+Input(10, 6) → RNN(input_size=6, hidden=64, tanh, layers=1) → last hidden state → Dense(1)
 ```
+- Input size: `6` = 1 window feature + 5 C features per step (from `config/setup.json → rnn.input_size`)
 - Hidden size: `64` (configurable via `config/setup.json → rnn.hidden_size`)
 - Nonlinearity: `"tanh"` (configurable via `rnn.nonlinearity`)
 - Num layers: `1` (configurable via `rnn.num_layers`)

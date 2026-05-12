@@ -87,3 +87,12 @@ def test_rnn_head_in_features_equals_hidden_size(model, rnn_cfg):
 
 def test_rnn_head_out_features_equals_output_size(model, rnn_cfg):
     assert model.head.out_features == rnn_cfg.output_size
+
+
+def test_rnn_many_to_one_last_hidden_state_used(model):
+    """Verify that changing only the last time step changes the model output."""
+    x1 = torch.randn(1, 10, 1)
+    x2 = x1.clone()
+    x2[:, -1, :] += 20.0
+    model.eval()
+    assert not torch.allclose(model(x1), model(x2))

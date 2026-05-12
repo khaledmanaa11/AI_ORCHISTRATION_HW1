@@ -11,14 +11,18 @@ class ConfigValidationError(Exception):
 
 @dataclass
 class TrainingConfig:
-    """Hyperparameters for the training loop."""
+    """Hyperparameters for the training loop.
+
+    val_split reflects the pre-split ratio from dataset.npz (15%). The Trainer
+    receives a pre-built val_loader and does NOT re-split training data internally.
+    """
 
     batch_size: int
     learning_rate: float
     weight_decay: float
     max_epochs: int
     early_stopping_patience: int
-    val_split: float
+    val_split: float  # informational only — trainer uses the provided val_loader
     random_seed: int
     device: str = "cpu"
     gradient_clip_norm: float | None = None
@@ -41,6 +45,7 @@ class RNNConfig:
     nonlinearity: str
     num_layers: int
     output_size: int
+    input_size: int = 1  # features per timestep; 6 when C is broadcast-injected
 
 
 @dataclass
@@ -51,6 +56,7 @@ class LSTMConfig:
     num_layers: int
     dense_hidden_size: int
     output_size: int
+    input_size: int = 1  # features per timestep; 6 when C is broadcast-injected
 
 
 @dataclass

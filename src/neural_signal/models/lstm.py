@@ -9,7 +9,7 @@ from neural_signal.shared.config import LSTMConfig
 
 
 class LSTMModel(nn.Module):
-    """LSTM: LSTM(input=1, hidden=64) → Linear(64→32) → ReLU → Linear(32→1), many-to-one.
+    """LSTM: LSTM(input=cfg.input_size, hidden=64) → Linear(64→32) → ReLU → Linear(32→1).
 
     Uses the last time-step output. All sizes from LSTMConfig — no literals here.
     """
@@ -18,7 +18,7 @@ class LSTMModel(nn.Module):
         """Build LSTM and dense head from LSTMConfig."""
         super().__init__()
         self.lstm = nn.LSTM(
-            input_size=1,
+            input_size=cfg.input_size,
             hidden_size=cfg.hidden_size,
             num_layers=cfg.num_layers,
             batch_first=True,

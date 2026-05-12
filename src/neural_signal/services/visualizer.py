@@ -26,6 +26,18 @@ class Visualizer:
         self._dir = Path(results_dir)
         self._dir.mkdir(parents=True, exist_ok=True)
 
+    def _save_and_close(self, fig, path: Path) -> Path:
+        """Save figure to path at 120 DPI, close it, and return the path."""
+        fig.savefig(path, dpi=120, bbox_inches="tight")
+        plt.close(fig)
+        return path
+
+    def _apply_common_style(self, ax) -> None:
+        """Apply shared axis style: grid, xlabel, ylabel."""
+        ax.grid(True, alpha=0.3)
+        ax.set_xlabel("Sample index")
+        ax.set_ylabel("Signal value")
+
     def plot_clean_noisy_predicted(
         self,
         clean: np.ndarray,
@@ -45,13 +57,9 @@ class Visualizer:
         for name, pred in preds.items():
             ax.plot(idx, pred[idx], color=colors.get(name, "blue"), label=name.upper())
         ax.set_title("Clean vs Noisy vs Predicted")
-        ax.set_xlabel("Sample index")
-        ax.set_ylabel("Signal value")
+        self._apply_common_style(ax)
         ax.legend()
-        out = self._dir / "clean_noisy_predicted.png"
-        fig.savefig(out, dpi=120, bbox_inches="tight")
-        plt.close(fig)
-        return out
+        return self._save_and_close(fig, self._dir / "clean_noisy_predicted.png")
 
     def plot_loss_curves(
         self,
@@ -68,10 +76,8 @@ class Visualizer:
         ax.set_xlabel("Epoch")
         ax.set_ylabel("MSE")
         ax.legend()
-        out = self._dir / f"loss_curves_{model_name}.png"
-        fig.savefig(out, dpi=120, bbox_inches="tight")
-        plt.close(fig)
-        return out
+        ax.grid(True, alpha=0.3)
+        return self._save_and_close(fig, self._dir / f"loss_curves_{model_name}.png")
 
     def plot_mse_comparison(self, results: list[EvalResult]) -> Path:
         """Grouped bar chart: train / val / test MSE for all three models."""
@@ -87,10 +93,8 @@ class Visualizer:
         ax.set_ylabel("MSE")
         ax.set_title("MSE Comparison — All Models")
         ax.legend()
-        out = self._dir / "mse_comparison.png"
-        fig.savefig(out, dpi=120, bbox_inches="tight")
-        plt.close(fig)
-        return out
+        ax.grid(True, alpha=0.3)
+        return self._save_and_close(fig, self._dir / "mse_comparison.png")
 
     def plot_residuals(
         self, model_name: str, y_true: np.ndarray, y_pred: np.ndarray
@@ -103,10 +107,8 @@ class Visualizer:
         ax.set_title(f"Residuals — {model_name.upper()}")
         ax.set_xlabel("Residual (pred − true)")
         ax.set_ylabel("Count")
-        out = self._dir / f"residuals_{model_name}.png"
-        fig.savefig(out, dpi=120, bbox_inches="tight")
-        plt.close(fig)
-        return out
+        ax.grid(True, alpha=0.3)
+        return self._save_and_close(fig, self._dir / f"residuals_{model_name}.png")
 
     def plot_pred_vs_actual(
         self, predictions: dict[str, tuple[np.ndarray, np.ndarray]]
@@ -129,7 +131,4 @@ class Visualizer:
             ax.set_xlabel("Actual")
             ax.set_ylabel("Predicted")
         fig.suptitle("Predicted vs Actual")
-        out = self._dir / "pred_vs_actual.png"
-        fig.savefig(out, dpi=120, bbox_inches="tight")
-        plt.close(fig)
-        return out
+        return self._save_and_close(fig, self._dir / "pred_vs_actual.png")

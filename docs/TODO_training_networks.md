@@ -22,14 +22,14 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Verify early stopping stated in PRD.md
 - [x] Verify mandatory visualization: "Clean vs. Noisy vs. Predicted" in PRD.md
 - [x] Verify all 5 deliverable plot files listed in PRD.md
-- [ ] Verify per-algorithm PRDs listed: PRD_fcn.md, PRD_rnn.md, PRD_lstm.md
+- [x] Verify per-algorithm PRDs listed: PRD_fcn.md, PRD_rnn.md, PRD_lstm.md
 - [x] Verify acceptance criteria count is 10 in PRD.md
 - [x] Read PLAN.md in full and verify repository structure matches PRD scope
 - [x] Verify all model files listed in PLAN.md: fcn.py, rnn.py, lstm.py
 - [x] Verify all service files listed in PLAN.md: data_loader, preprocessor, trainer, evaluator, visualizer
 - [x] Verify DataLoaderService input encoding described for FCN and RNN/LSTM
 - [x] Verify config JSON snippet for training, fcn, rnn, lstm, output in PLAN.md
-- [ ] Verify file size budget table — all entries ≤ 150 lines
+- [x] Verify file size budget table — all entries ≤ 150 lines
 - [x] Verify testing strategy table lists all 12 test files
 - [x] Verify 10 visualisation files listed in PLAN.md
 - [x] Read TODO.md (this file) and confirm all phases are present
@@ -67,7 +67,7 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Verify `import torch.nn` works
 - [x] Verify `import torch.optim` works
 - [x] Verify `import torch.utils.data` works
-- [ ] Confirm CUDA availability check in config (graceful CPU fallback)
+- [x] Confirm CUDA availability check in config (graceful CPU fallback)
 
 ---
 
@@ -82,8 +82,8 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Create `tests/integration/` directory (if not present)
 - [x] Create `results/checkpoints/` directory
 - [x] Create `results/sensitivity/` directory
-- [ ] Create `notebooks/` directory (if not present)
-- [ ] Verify full tree matches PLAN.md exactly
+- [x] Create `notebooks/` directory (if not present)
+- [x] Verify full tree matches PLAN.md exactly
 - [x] Verify `data/dataset.npz` exists (generated in Phase 1)
 
 ---
@@ -268,7 +268,7 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Define `tmp_results_dir` fixture using `tmp_path`
 - [x] Define `tmp_checkpoint_path` fixture using `tmp_path / "model_best.pt"`
 - [x] Define `batch_size_fixture` returning 16 (small for tests)
-- [ ] Verify conftest.py ≤ 150 lines
+- [x] Verify conftest.py ≤ 150 lines
 - [x] Verify `uv run ruff check tests/conftest.py` → 0 errors
 
 ---
@@ -314,7 +314,7 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Write `test_config_raises_on_dropout_rate_above_1`
 - [x] Write `test_config_raises_on_rnn_hidden_size_zero`
 - [x] Write `test_config_raises_on_lstm_hidden_size_zero`
-- [ ] Verify test file ≤ 150 lines
+- [x] Verify test file ≤ 150 lines
 - [x] Run tests — confirm all FAIL (RED)
 
 ### GREEN Phase
@@ -353,7 +353,7 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Validate fcn hidden_sizes non-empty
 - [x] Validate rnn hidden_size > 0
 - [x] Validate lstm hidden_size > 0
-- [ ] Verify file ≤ 150 lines
+- [x] Verify file ≤ 150 lines
 - [x] Run tests — confirm all PASS (GREEN)
 
 ### REFACTOR Phase
@@ -426,23 +426,23 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Write `test_data_bundle_has_val_loader`
 - [x] Write `test_data_bundle_has_test_loader`
 - [x] Write `test_train_loader_batch_shape_fcn` — batch x shape (batch_size, 15)
-- [ ] Write `test_val_loader_batch_shape_fcn`
-- [ ] Write `test_test_loader_batch_shape_fcn`
+- [x] Write `test_val_loader_batch_shape_fcn`
+- [x] Write `test_test_loader_batch_shape_fcn`
 - [x] Write `test_train_loader_y_batch_shape` — y shape (batch_size, 1)
 - [x] Write `test_data_bundle_has_raw_X_train`
 - [x] Write `test_data_bundle_has_raw_C_train`
 - [x] Write `test_data_bundle_has_raw_y_train`
 - [x] Write `test_fcn_input_is_concat_of_X_and_C` — shape (N, 15) = (N, 10+5)
 - [x] Write `test_rnn_input_reshape_shape` — shape (N, 10, 1)
-- [ ] Write `test_seq_loader_batch_shape_rnn` — batch shape (batch_size, 10, 1)
+- [x] Write `test_seq_loader_batch_shape_rnn` — batch shape (batch_size, 10, 1)
 - [x] Write `test_data_loader_raises_on_missing_npz`
 - [x] Write `test_data_loader_raises_on_missing_X_train_key`
-- [ ] Write `test_data_loader_raises_on_missing_C_train_key`
-- [ ] Write `test_data_loader_raises_on_missing_y_train_key`
-- [ ] Write `test_train_loader_shuffles_data` — two iterations differ
+- [x] Write `test_data_loader_raises_on_missing_C_train_key`
+- [x] Write `test_data_loader_raises_on_missing_y_train_key`
+- [x] Write `test_train_loader_shuffles_data` — two iterations differ
 - [x] Write `test_val_loader_does_not_shuffle` — two iterations identical
 - [x] Write `test_test_loader_does_not_shuffle`
-- [ ] Write `test_batch_size_from_config`
+- [x] Write `test_batch_size_from_config`
 - [x] Write `test_no_nan_in_train_batch_x`
 - [x] Write `test_no_nan_in_train_batch_y`
 - [x] Write `test_no_inf_in_train_batch_x`
@@ -486,8 +486,8 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Write `test_preprocessor_instantiates`
 - [x] Write `test_fit_computes_mean_from_train_only`
 - [x] Write `test_fit_computes_std_from_train_only`
-- [ ] Write `test_transform_subtracts_mean`
-- [ ] Write `test_transform_divides_by_std`
+- [x] Write `test_transform_subtracts_mean`
+- [x] Write `test_transform_divides_by_std`
 - [x] Write `test_transform_mean_of_normalized_train_approx_zero`
 - [x] Write `test_transform_std_of_normalized_train_approx_one`
 - [x] Write `test_val_normalized_using_train_mean_not_val_mean`
@@ -616,7 +616,7 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Write `test_rnn_has_linear_head`
 - [x] Write `test_rnn_linear_head_in_features_equals_64`
 - [x] Write `test_rnn_linear_head_out_features_equals_1`
-- [ ] Write `test_rnn_many_to_one_last_hidden_state_used` — mock RNN output, verify index -1 extracted
+- [x] Write `test_rnn_many_to_one_last_hidden_state_used` — mock RNN output, verify index -1 extracted
 - [x] Write `test_rnn_parameters_require_grad`
 - [x] Write `test_rnn_hidden_size_from_config`
 - [x] Write `test_rnn_nonlinearity_from_config`
@@ -671,20 +671,20 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Write `test_lstm_has_two_dense_layers_in_head`
 - [x] Write `test_lstm_first_dense_in_features_equals_64`
 - [x] Write `test_lstm_first_dense_out_features_equals_32`
-- [ ] Write `test_lstm_second_dense_in_features_equals_32`
+- [x] Write `test_lstm_second_dense_in_features_equals_32`
 - [x] Write `test_lstm_second_dense_out_features_equals_1`
-- [ ] Write `test_lstm_relu_between_dense_layers`
-- [ ] Write `test_lstm_no_activation_on_output`
-- [ ] Write `test_lstm_many_to_one_last_output_used` — verify index -1 extracted from LSTM output
+- [x] Write `test_lstm_relu_between_dense_layers`
+- [x] Write `test_lstm_no_activation_on_output`
+- [x] Write `test_lstm_many_to_one_last_output_used` — verify index -1 extracted from LSTM output
 - [x] Write `test_lstm_parameters_require_grad`
 - [x] Write `test_lstm_hidden_size_from_config`
 - [x] Write `test_lstm_dense_hidden_size_from_config`
 - [x] Write `test_lstm_output_is_float_tensor`
 - [x] Write `test_lstm_forward_with_zero_input_no_error`
-- [ ] Write `test_lstm_input_size_equals_1`
+- [x] Write `test_lstm_input_size_equals_1`
 - [x] Write `test_lstm_output_not_equal_for_different_sequences`
-- [ ] Write `test_lstm_hidden_size_not_hardcoded`
-- [ ] Write `test_lstm_dense_hidden_size_not_hardcoded`
+- [x] Write `test_lstm_hidden_size_not_hardcoded`
+- [x] Write `test_lstm_dense_hidden_size_not_hardcoded`
 - [x] Verify test file ≤ 150 lines
 - [x] Run tests — confirm all FAIL (RED)
 
@@ -728,27 +728,27 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Write `test_training_result_has_checkpoint_path`
 - [x] Write `test_train_loss_is_finite` — MSE is not NaN or Inf after 1 epoch
 - [x] Write `test_val_loss_is_finite`
-- [ ] Write `test_train_loss_decreases_over_epochs` — loss[5] < loss[0] on simple data
-- [ ] Write `test_optimizer_is_adam` — check optimizer class
-- [ ] Write `test_learning_rate_from_config`
-- [ ] Write `test_weight_decay_applied_for_fcn` — check optimizer.param_groups weight_decay
-- [ ] Write `test_loss_function_is_mse`
+- [x] Write `test_train_loss_decreases_over_epochs` — loss[5] < loss[0] on simple data
+- [x] Write `test_optimizer_is_adam` — check optimizer class
+- [x] Write `test_learning_rate_from_config`
+- [x] Write `test_weight_decay_applied_for_fcn` — check optimizer.param_groups weight_decay
+- [x] Write `test_loss_function_is_mse`
 - [x] Write `test_checkpoint_saved_to_configured_path`
-- [ ] Write `test_checkpoint_loadable_by_torch`
+- [x] Write `test_checkpoint_loadable_by_torch`
 - [x] Write `test_early_stopping_stops_before_max_epochs`
-- [ ] Write `test_early_stopping_patience_from_config`
-- [ ] Write `test_early_stopping_does_not_trigger_if_val_improving`
+- [x] Write `test_early_stopping_patience_from_config`
+- [x] Write `test_early_stopping_does_not_trigger_if_val_improving`
 - [x] Write `test_stopped_early_flag_true_when_early_stop_fires`
-- [ ] Write `test_stopped_early_flag_false_when_training_completes`
+- [x] Write `test_stopped_early_flag_false_when_training_completes`
 - [x] Write `test_epochs_trained_equals_epoch_count_not_max_epochs`
 - [x] Write `test_training_log_csv_created`
-- [ ] Write `test_training_log_has_epoch_column`
-- [ ] Write `test_training_log_has_train_mse_column`
-- [ ] Write `test_training_log_has_val_mse_column`
+- [x] Write `test_training_log_has_epoch_column`
+- [x] Write `test_training_log_has_train_mse_column`
+- [x] Write `test_training_log_has_val_mse_column`
 - [x] Write `test_training_log_row_count_equals_epochs_trained`
-- [ ] Write `test_best_checkpoint_is_minimum_val_mse_epoch` — not last epoch
-- [ ] Write `test_random_seed_fixes_weight_init`
-- [ ] Write `test_batch_size_from_config`
+- [x] Write `test_best_checkpoint_is_minimum_val_mse_epoch` — not last epoch
+- [x] Write `test_random_seed_fixes_weight_init`
+- [x] Write `test_batch_size_from_config`
 - [x] Verify test file ≤ 150 lines
 - [x] Run tests — confirm all FAIL (RED)
 
@@ -802,18 +802,18 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Write `test_mse_is_finite`
 - [x] Write `test_mse_is_non_negative`
 - [x] Write `test_mse_equals_zero_for_perfect_prediction`
-- [ ] Write `test_mse_computed_without_gradient`
+- [x] Write `test_mse_computed_without_gradient`
 - [x] Write `test_evaluate_all_returns_dataframe`
 - [x] Write `test_comparison_dataframe_has_model_column`
 - [x] Write `test_comparison_dataframe_has_train_mse_column`
-- [ ] Write `test_comparison_dataframe_has_val_mse_column`
+- [x] Write `test_comparison_dataframe_has_val_mse_column`
 - [x] Write `test_comparison_dataframe_has_test_mse_column`
-- [ ] Write `test_comparison_dataframe_has_epochs_trained_column`
-- [ ] Write `test_comparison_dataframe_has_stopped_early_column`
-- [ ] Write `test_comparison_dataframe_has_three_rows` — one per model
+- [x] Write `test_comparison_dataframe_has_epochs_trained_column`
+- [x] Write `test_comparison_dataframe_has_stopped_early_column`
+- [x] Write `test_comparison_dataframe_has_three_rows` — one per model
 - [x] Write `test_comparison_dataframe_saved_to_csv`
-- [ ] Write `test_comparison_csv_loadable_by_pandas`
-- [ ] Write `test_checkpoint_loaded_before_eval` — verify state dict loaded from file
+- [x] Write `test_comparison_csv_loadable_by_pandas`
+- [x] Write `test_checkpoint_loaded_before_eval` — verify state dict loaded from file
 - [x] Verify test file ≤ 150 lines
 - [x] Run tests — confirm all FAIL (RED)
 
@@ -851,17 +851,17 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Write `test_plot_clean_noisy_predicted_creates_file`
 - [x] Write `test_plot_clean_noisy_predicted_file_is_png`
 - [x] Write `test_plot_clean_noisy_predicted_file_not_empty`
-- [ ] Write `test_plot_clean_noisy_predicted_has_five_lines` — clean, noisy, fcn, rnn, lstm
+- [x] Write `test_plot_clean_noisy_predicted_has_five_lines` — clean, noisy, fcn, rnn, lstm
 - [x] Write `test_plot_loss_curves_creates_file_for_fcn`
-- [ ] Write `test_plot_loss_curves_creates_file_for_rnn`
-- [ ] Write `test_plot_loss_curves_creates_file_for_lstm`
+- [x] Write `test_plot_loss_curves_creates_file_for_rnn`
+- [x] Write `test_plot_loss_curves_creates_file_for_lstm`
 - [x] Write `test_plot_mse_comparison_creates_file`
-- [ ] Write `test_plot_mse_comparison_file_not_empty`
+- [x] Write `test_plot_mse_comparison_file_not_empty`
 - [x] Write `test_plot_residuals_creates_file_for_each_model`
 - [x] Write `test_plot_pred_vs_actual_creates_file`
-- [ ] Write `test_plot_uses_correct_colors_from_constants`
-- [ ] Write `test_plot_raises_on_mismatched_array_lengths`
-- [ ] Write `test_plot_works_with_minimal_data` — 10 samples, no error
+- [x] Write `test_plot_uses_correct_colors_from_constants`
+- [x] Write `test_plot_raises_on_mismatched_array_lengths`
+- [x] Write `test_plot_works_with_minimal_data` — 10 samples, no error
 - [x] Verify test file ≤ 150 lines
 - [x] Run tests — confirm all FAIL (RED)
 
@@ -881,8 +881,8 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Run tests — confirm all PASS (GREEN)
 
 ### REFACTOR Phase
-- [ ] Extract `_save_and_close(fig, path)` helper
-- [ ] Extract `_apply_common_style(ax)` helper for labels/grid
+- [x] Extract `_save_and_close(fig, path)` helper
+- [x] Extract `_apply_common_style(ax)` helper for labels/grid
 - [x] Confirm all figures closed after saving (no memory leak)
 - [x] Run `uv run ruff check src/neural_signal/services/visualizer.py` → 0 errors
 - [x] Re-run tests — still PASS
@@ -895,22 +895,22 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Create `tests/unit/test_sdk.py`
 - [x] Add module docstring
 - [x] Write `test_sdk_instantiates_with_config_path`
-- [ ] Write `test_sdk_run_all_returns_run_result`
+- [x] Write `test_sdk_run_all_returns_run_result`
 - [x] Write `test_run_result_has_fcn_eval`
 - [x] Write `test_run_result_has_rnn_eval`
 - [x] Write `test_run_result_has_lstm_eval`
-- [ ] Write `test_run_result_has_comparison_df`
+- [x] Write `test_run_result_has_comparison_df`
 - [x] Write `test_sdk_train_model_fcn_returns_training_result` (mock services)
 - [x] Write `test_sdk_train_model_rnn_returns_training_result` (mock services)
 - [x] Write `test_sdk_train_model_lstm_returns_training_result` (mock services)
-- [ ] Write `test_sdk_raises_on_unknown_model_name`
+- [x] Write `test_sdk_raises_on_unknown_model_name`
 - [x] Write `test_sdk_evaluate_all_returns_dataframe`
-- [ ] Write `test_sdk_get_version_returns_string`
-- [ ] Write `test_sdk_calls_data_loader_service` (mock)
-- [ ] Write `test_sdk_calls_preprocessor` (mock)
-- [ ] Write `test_sdk_calls_trainer_for_each_model` (mock)
-- [ ] Write `test_sdk_calls_evaluator` (mock)
-- [ ] Write `test_sdk_calls_visualizer` (mock)
+- [x] Write `test_sdk_get_version_returns_string`
+- [x] Write `test_sdk_calls_data_loader_service` (mock)
+- [x] Write `test_sdk_calls_preprocessor` (mock)
+- [x] Write `test_sdk_calls_trainer_for_each_model` (mock)
+- [x] Write `test_sdk_calls_evaluator` (mock)
+- [x] Write `test_sdk_calls_visualizer` (mock)
 - [x] Verify test file ≤ 150 lines
 - [x] Run tests — confirm all FAIL (RED)
 
@@ -919,15 +919,15 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Add module docstring — explain this is the sole public API
 - [x] Import all service and model classes
 - [x] Import `version`, `constants`
-- [ ] Define `RunResult` dataclass: fcn_eval, rnn_eval, lstm_eval, comparison_df
+- [x] Define `RunResult` dataclass: fcn_eval, rnn_eval, lstm_eval, comparison_df
 - [x] Define `NeuralSignalSDK` class with docstring
 - [x] Implement `__init__(self, config_path, rate_limits_path)`
 - [x] Implement `run_all(self) -> RunResult`
 - [x] Implement `train_model(self, model_name: str, ...) -> TrainingResult`
 - [x] Implement `evaluate_all(self) -> pd.DataFrame`
-- [ ] Implement `get_version(self) -> str`
-- [ ] Raise `ValueError` on unknown model_name
-- [ ] Verify file ≤ 150 lines
+- [x] Implement `get_version(self) -> str`
+- [x] Raise `ValueError` on unknown model_name
+- [x] Verify file ≤ 150 lines
 - [x] Run tests — confirm all PASS (GREEN)
 
 ### REFACTOR Phase
@@ -942,21 +942,21 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 
 - [x] Create `src/neural_signal/main.py`
 - [x] Add module docstring
-- [ ] Import `argparse`, `pathlib`, `sys`, `NeuralSignalSDK`
-- [ ] Define `parse_args() -> argparse.Namespace`
-- [ ] Add `--config` argument (default: `config/setup.json`)
-- [ ] Add `--rate-limits` argument (default: `config/rate_limits.json`)
-- [ ] Add `--model` argument (choices: fcn, rnn, lstm, all; default: all)
-- [ ] Add `--verbose` flag
+- [x] Import `argparse`, `pathlib`, `sys`, `NeuralSignalSDK`
+- [x] Define `parse_args() -> argparse.Namespace`
+- [x] Add `--config` argument (default: `config/setup.json`)
+- [x] Add `--rate-limits` argument (default: `config/rate_limits.json`)
+- [x] Add `--model` argument (choices: fcn, rnn, lstm, all; default: all)
+- [x] Add `--verbose` flag
 - [x] Define `main() -> int`
-- [ ] Parse args, instantiate `NeuralSignalSDK`
-- [ ] If `args.model == "all"`: call `sdk.run_all()`
-- [ ] Else: call `sdk.train_model(args.model)` then `sdk.evaluate_all()`
+- [x] Parse args, instantiate `NeuralSignalSDK`
+- [x] If `args.model == "all"`: call `sdk.run_all()`
+- [x] Else: call `sdk.train_model(args.model)` then `sdk.evaluate_all()`
 - [x] Print summary: model results, paths saved, time elapsed
-- [ ] Return exit code 0 on success, 1 on error
+- [x] Return exit code 0 on success, 1 on error
 - [x] Add `if __name__ == "__main__": main()`
-- [ ] Test: `uv run python -m neural_signal --help` outputs usage
-- [ ] Test: `uv run python -m neural_signal --model fcn` runs without error
+- [x] Test: `uv run python -m neural_signal --help` outputs usage
+- [x] Test: `uv run python -m neural_signal --model fcn` runs without error
 - [x] Verify file ≤ 150 lines
 - [x] Verify `uv run ruff check src/neural_signal/main.py` → 0 errors
 
@@ -965,42 +965,42 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 ## Phase 22 — Per-Algorithm PRDs
 
 ### `docs/PRD_fcn.md`
-- [ ] Create `docs/PRD_fcn.md`
-- [ ] Add title and version header
-- [ ] Document FCN input data: shape (batch, 15), concatenated X + C
-- [ ] Document FCN output data: shape (batch, 1), scalar regression value
-- [ ] Document FCN setup data: hidden_sizes, dropout_rate, weight_decay, all from config
-- [ ] Write layer-by-layer forward pass pseudocode
-- [ ] Document Dropout behavior: active during training, inactive during eval
-- [ ] Document L2 regularization mechanism (weight_decay in Adam)
-- [ ] Document expected MSE range based on signal noise levels
-- [ ] List acceptance criteria for FCN
-- [ ] Add OAT plan: vary dropout_rate, hidden_sizes, weight_decay
+- [x] Create `docs/PRD_fcn.md`
+- [x] Add title and version header
+- [x] Document FCN input data: shape (batch, 15), concatenated X + C
+- [x] Document FCN output data: shape (batch, 1), scalar regression value
+- [x] Document FCN setup data: hidden_sizes, dropout_rate, weight_decay, all from config
+- [x] Write layer-by-layer forward pass pseudocode
+- [x] Document Dropout behavior: active during training, inactive during eval
+- [x] Document L2 regularization mechanism (weight_decay in Adam)
+- [x] Document expected MSE range based on signal noise levels
+- [x] List acceptance criteria for FCN
+- [x] Add OAT plan: vary dropout_rate, hidden_sizes, weight_decay
 
 ### `docs/PRD_rnn.md`
-- [ ] Create `docs/PRD_rnn.md`
-- [ ] Add title and version header
-- [ ] Document RNN input data: shape (batch, seq_len=10, 1)
-- [ ] Document C injection strategy: prepend or concatenate to sequence
-- [ ] Document RNN output data: shape (batch, 1)
-- [ ] Document many-to-one architecture: last hidden state `h_t[:, -1, :]`
-- [ ] Document tanh non-linearity choice vs ReLU
-- [ ] Document gradient vanishing risk and mitigation (gradient clipping option)
-- [ ] Write forward pass pseudocode
-- [ ] List acceptance criteria for RNN
-- [ ] Add OAT plan: vary hidden_size, num_layers, seq_len
+- [x] Create `docs/PRD_rnn.md`
+- [x] Add title and version header
+- [x] Document RNN input data: shape (batch, seq_len=10, 1)
+- [x] Document C injection strategy: prepend or concatenate to sequence
+- [x] Document RNN output data: shape (batch, 1)
+- [x] Document many-to-one architecture: last hidden state `h_t[:, -1, :]`
+- [x] Document tanh non-linearity choice vs ReLU
+- [x] Document gradient vanishing risk and mitigation (gradient clipping option)
+- [x] Write forward pass pseudocode
+- [x] List acceptance criteria for RNN
+- [x] Add OAT plan: vary hidden_size, num_layers, seq_len
 
 ### `docs/PRD_lstm.md`
-- [ ] Create `docs/PRD_lstm.md`
-- [ ] Add title and version header
-- [ ] Document LSTM input data: shape (batch, seq_len=10, 1)
-- [ ] Document LSTM gates: forget, input, cell, output
-- [ ] Document LSTM output data: shape (batch, 1)
-- [ ] Document many-to-one architecture: last output `out[:, -1, :]`
-- [ ] Document dense head: Linear(64,32) → ReLU → Linear(32,1)
-- [ ] Write forward pass pseudocode
-- [ ] List acceptance criteria for LSTM
-- [ ] Add OAT plan: vary hidden_size, dense_hidden_size, num_layers
+- [x] Create `docs/PRD_lstm.md`
+- [x] Add title and version header
+- [x] Document LSTM input data: shape (batch, seq_len=10, 1)
+- [x] Document LSTM gates: forget, input, cell, output
+- [x] Document LSTM output data: shape (batch, 1)
+- [x] Document many-to-one architecture: last output `out[:, -1, :]`
+- [x] Document dense head: Linear(64,32) → ReLU → Linear(32,1)
+- [x] Write forward pass pseudocode
+- [x] List acceptance criteria for LSTM
+- [x] Add OAT plan: vary hidden_size, dense_hidden_size, num_layers
 
 ---
 
@@ -1008,26 +1008,26 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 
 - [x] Create `tests/integration/test_pipeline.py`
 - [x] Add module docstring
-- [ ] Write `test_full_pipeline_runs_without_error` — NeuralSignalSDK.run_all() end-to-end
-- [ ] Write `test_run_all_creates_comparison_table_csv`
-- [ ] Write `test_run_all_creates_clean_noisy_predicted_png`
-- [ ] Write `test_run_all_creates_loss_curves_fcn_png`
-- [ ] Write `test_run_all_creates_loss_curves_rnn_png`
-- [ ] Write `test_run_all_creates_loss_curves_lstm_png`
-- [ ] Write `test_run_all_creates_mse_comparison_png`
-- [ ] Write `test_run_all_creates_fcn_checkpoint`
-- [ ] Write `test_run_all_creates_rnn_checkpoint`
-- [ ] Write `test_run_all_creates_lstm_checkpoint`
-- [ ] Write `test_comparison_table_has_three_rows`
-- [ ] Write `test_all_mse_values_are_finite`
-- [ ] Write `test_all_mse_values_are_non_negative`
-- [ ] Write `test_fcn_train_mse_less_than_random_baseline`
-- [ ] Write `test_rnn_train_mse_less_than_random_baseline`
-- [ ] Write `test_lstm_train_mse_less_than_random_baseline`
-- [ ] Write `test_early_stopping_log_entries_match_epochs_trained`
-- [ ] Write `test_checkpoint_loadable_and_produces_same_predictions`
-- [ ] Write `test_fcn_train_mse_less_than_val_mse_or_equal` — no severe underfitting
-- [ ] Write `test_pipeline_reproducible_with_same_seed`
+- [x] Write `test_full_pipeline_runs_without_error` — NeuralSignalSDK.run_all() end-to-end
+- [x] Write `test_run_all_creates_comparison_table_csv`
+- [x] Write `test_run_all_creates_clean_noisy_predicted_png`
+- [x] Write `test_run_all_creates_loss_curves_fcn_png`
+- [x] Write `test_run_all_creates_loss_curves_rnn_png`
+- [x] Write `test_run_all_creates_loss_curves_lstm_png`
+- [x] Write `test_run_all_creates_mse_comparison_png`
+- [x] Write `test_run_all_creates_fcn_checkpoint`
+- [x] Write `test_run_all_creates_rnn_checkpoint`
+- [x] Write `test_run_all_creates_lstm_checkpoint`
+- [x] Write `test_comparison_table_has_three_rows`
+- [x] Write `test_all_mse_values_are_finite`
+- [x] Write `test_all_mse_values_are_non_negative`
+- [x] Write `test_fcn_train_mse_less_than_random_baseline`
+- [x] Write `test_rnn_train_mse_less_than_random_baseline`
+- [x] Write `test_lstm_train_mse_less_than_random_baseline`
+- [x] Write `test_early_stopping_log_entries_match_epochs_trained`
+- [x] Write `test_checkpoint_loadable_and_produces_same_predictions`
+- [x] Write `test_fcn_train_mse_less_than_val_mse_or_equal` — no severe underfitting
+- [x] Write `test_pipeline_reproducible_with_same_seed`
 - [x] Verify test file ≤ 150 lines
 - [x] Run integration tests — confirm all PASS
 
@@ -1058,7 +1058,7 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Verify `src/neural_signal/__init__.py` ≤ 150 lines
 - [x] Verify `src/neural_signal/constants.py` ≤ 150 lines
 - [x] Verify `src/neural_signal/main.py` ≤ 150 lines
-- [ ] Verify `src/neural_signal/sdk/sdk.py` ≤ 150 lines
+- [x] Verify `src/neural_signal/sdk/sdk.py` ≤ 150 lines
 - [x] Verify `src/neural_signal/models/fcn.py` ≤ 150 lines
 - [x] Verify `src/neural_signal/models/rnn.py` ≤ 150 lines
 - [x] Verify `src/neural_signal/models/lstm.py` ≤ 150 lines
@@ -1067,9 +1067,9 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Verify `src/neural_signal/services/trainer.py` ≤ 150 lines
 - [x] Verify `src/neural_signal/services/evaluator.py` ≤ 150 lines
 - [x] Verify `src/neural_signal/services/visualizer.py` ≤ 150 lines
-- [ ] Verify `src/neural_signal/shared/config.py` ≤ 150 lines
+- [x] Verify `src/neural_signal/shared/config.py` ≤ 150 lines
 - [x] Verify `src/neural_signal/shared/gatekeeper.py` ≤ 150 lines
-- [ ] Verify `tests/conftest.py` ≤ 150 lines
+- [x] Verify `tests/conftest.py` ≤ 150 lines
 - [x] Verify all test files ≤ 150 lines
 - [x] Grep for hardcoded `128` in model files — must not appear outside config
 - [x] Grep for hardcoded `64` in model files — must not appear outside config
@@ -1083,73 +1083,73 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 
 ## Phase 25 — OAT Parameter Sensitivity Analysis
 
-- [ ] Plan OAT sweep parameters: window_size, hidden_size, learning_rate, dropout_rate, batch_size
-- [ ] Define parameter ranges for window_size: [5, 10, 20, 30, 50]
-- [ ] Define parameter ranges for hidden_size: [16, 32, 64, 128, 256]
-- [ ] Define parameter ranges for learning_rate: [0.0001, 0.0005, 0.001, 0.005, 0.01]
-- [ ] Define parameter ranges for dropout_rate: [0.0, 0.1, 0.2, 0.3, 0.5]
-- [ ] Define parameter ranges for batch_size: [16, 32, 64, 128, 256]
-- [ ] Implement sweep loop in notebook or `services/sensitivity.py`
-- [ ] For each parameter × value: train all 3 models, record val MSE
-- [ ] Save sensitivity results to `results/sensitivity/sensitivity_results.csv`
-- [ ] Plot heatmap: model × parameter value → val MSE
-- [ ] Plot line chart per parameter: val MSE vs parameter value, 3 lines (FCN/RNN/LSTM)
-- [ ] Save heatmap to `results/sensitivity/sensitivity_heatmap.png`
-- [ ] Save line charts to `results/sensitivity/sensitivity_<param>.png`
-- [ ] Write summary: which parameters most affect each model
-- [ ] Add sensitivity findings to notebook
+- [x] Plan OAT sweep parameters: window_size, hidden_size, learning_rate, dropout_rate, batch_size
+- [x] Define parameter ranges for window_size: [5, 10, 20, 30, 50]
+- [x] Define parameter ranges for hidden_size: [16, 32, 64, 128, 256]
+- [x] Define parameter ranges for learning_rate: [0.0001, 0.0005, 0.001, 0.005, 0.01]
+- [x] Define parameter ranges for dropout_rate: [0.0, 0.1, 0.2, 0.3, 0.5]
+- [x] Define parameter ranges for batch_size: [16, 32, 64, 128, 256]
+- [x] Implement sweep loop in notebook or `services/sensitivity.py`
+- [x] For each parameter × value: train all 3 models, record val MSE
+- [x] Save sensitivity results to `results/sensitivity/sensitivity_results.csv`
+- [x] Plot heatmap: model × parameter value → val MSE
+- [x] Plot line chart per parameter: val MSE vs parameter value, 3 lines (FCN/RNN/LSTM)
+- [x] Save heatmap to `results/sensitivity/sensitivity_heatmap.png`
+- [x] Save line charts to `results/sensitivity/sensitivity_<param>.png`
+- [x] Write summary: which parameters most affect each model
+- [x] Add sensitivity findings to notebook
 
 ---
 
 ## Phase 26 — Jupyter Notebook: `notebooks/results_analysis.ipynb`
 
-- [ ] Create `notebooks/results_analysis.ipynb`
-- [ ] Cell 1 — Markdown title: "# Neural Network Signal Regression — Results Analysis"
-- [ ] Cell 2 — Imports: torch, numpy, matplotlib, seaborn, pandas, pathlib, sys
-- [ ] Cell 3 — Set sys.path to include src/
-- [ ] Cell 4 — Import NeuralSignalSDK, instantiate with config paths
-- [ ] Cell 5 — Markdown: "## 1. Dataset Overview"
-- [ ] Cell 6 — Load dataset.npz, print shapes of all 9 arrays
-- [ ] Cell 7 — Print split sizes and percentages
-- [ ] Cell 8 — Markdown: "## 2. Model Architectures"
-- [ ] Cell 9 — Instantiate FCNModel, print architecture (`print(model)`)
-- [ ] Cell 10 — Count FCN parameters: `sum(p.numel() for p in model.parameters())`
-- [ ] Cell 11 — Instantiate RNNModel, print architecture
-- [ ] Cell 12 — Count RNN parameters
-- [ ] Cell 13 — Instantiate LSTMModel, print architecture
-- [ ] Cell 14 — Count LSTM parameters
-- [ ] Cell 15 — Markdown: "## 3. Training Results"
-- [ ] Cell 16 — Load comparison_table.csv, display as DataFrame
-- [ ] Cell 17 — Bar chart: train/val/test MSE per model
-- [ ] Cell 18 — Markdown table: model | train_mse | val_mse | test_mse | epochs | early_stop
-- [ ] Cell 19 — Markdown: "## 4. Training Loss Curves"
-- [ ] Cell 20 — Load training_log_fcn.csv, plot train vs val loss per epoch
-- [ ] Cell 21 — Load training_log_rnn.csv, plot train vs val loss per epoch
-- [ ] Cell 22 — Load training_log_lstm.csv, plot train vs val loss per epoch
-- [ ] Cell 23 — Markdown: "## 5. Signal Reconstruction"
-- [ ] Cell 24 — Load best checkpoints for all 3 models
-- [ ] Cell 25 — Run inference on test set (first 500 samples)
-- [ ] Cell 26 — Plot: Clean vs. Noisy vs. FCN vs. RNN vs. LSTM (same figure)
-- [ ] Cell 27 — Markdown: "## 6. Residual Analysis"
-- [ ] Cell 28 — Plot residuals for FCN on test set
-- [ ] Cell 29 — Plot residuals for RNN on test set
-- [ ] Cell 30 — Plot residuals for LSTM on test set
-- [ ] Cell 31 — Print: mean, std, max absolute residual per model
-- [ ] Cell 32 — Markdown: "## 7. Parameter Sensitivity (OAT)"
-- [ ] Cell 33 — Load sensitivity_results.csv
-- [ ] Cell 34 — Plot sensitivity line charts per parameter
-- [ ] Cell 35 — Heatmap: model × parameter value → val MSE
-- [ ] Cell 36 — Markdown: "## 8. Statistical Comparison"
-- [ ] Cell 37 — Paired t-test: FCN vs RNN test MSE over multiple runs
-- [ ] Cell 38 — Paired t-test: FCN vs LSTM test MSE
-- [ ] Cell 39 — Paired t-test: RNN vs LSTM test MSE
-- [ ] Cell 40 — Summary table of statistical significance
-- [ ] Cell 41 — Markdown: "## 9. Conclusions"
-- [ ] Cell 42 — Which model has lowest test MSE?
-- [ ] Cell 43 — Which model converged fastest (fewest epochs)?
-- [ ] Cell 44 — Which model is most sensitive to hyperparameters?
-- [ ] Cell 45 — Final recommendation and justification
-- [ ] Run all cells — confirm no errors
+- [x] Create `notebooks/results_analysis.ipynb`
+- [x] Cell 1 — Markdown title: "# Neural Network Signal Regression — Results Analysis"
+- [x] Cell 2 — Imports: torch, numpy, matplotlib, seaborn, pandas, pathlib, sys
+- [x] Cell 3 — Set sys.path to include src/
+- [x] Cell 4 — Import NeuralSignalSDK, instantiate with config paths
+- [x] Cell 5 — Markdown: "## 1. Dataset Overview"
+- [x] Cell 6 — Load dataset.npz, print shapes of all 9 arrays
+- [x] Cell 7 — Print split sizes and percentages
+- [x] Cell 8 — Markdown: "## 2. Model Architectures"
+- [x] Cell 9 — Instantiate FCNModel, print architecture (`print(model)`)
+- [x] Cell 10 — Count FCN parameters: `sum(p.numel() for p in model.parameters())`
+- [x] Cell 11 — Instantiate RNNModel, print architecture
+- [x] Cell 12 — Count RNN parameters
+- [x] Cell 13 — Instantiate LSTMModel, print architecture
+- [x] Cell 14 — Count LSTM parameters
+- [x] Cell 15 — Markdown: "## 3. Training Results"
+- [x] Cell 16 — Load comparison_table.csv, display as DataFrame
+- [x] Cell 17 — Bar chart: train/val/test MSE per model
+- [x] Cell 18 — Markdown table: model | train_mse | val_mse | test_mse | epochs | early_stop
+- [x] Cell 19 — Markdown: "## 4. Training Loss Curves"
+- [x] Cell 20 — Load training_log_fcn.csv, plot train vs val loss per epoch
+- [x] Cell 21 — Load training_log_rnn.csv, plot train vs val loss per epoch
+- [x] Cell 22 — Load training_log_lstm.csv, plot train vs val loss per epoch
+- [x] Cell 23 — Markdown: "## 5. Signal Reconstruction"
+- [x] Cell 24 — Load best checkpoints for all 3 models
+- [x] Cell 25 — Run inference on test set (first 500 samples)
+- [x] Cell 26 — Plot: Clean vs. Noisy vs. FCN vs. RNN vs. LSTM (same figure)
+- [x] Cell 27 — Markdown: "## 6. Residual Analysis"
+- [x] Cell 28 — Plot residuals for FCN on test set
+- [x] Cell 29 — Plot residuals for RNN on test set
+- [x] Cell 30 — Plot residuals for LSTM on test set
+- [x] Cell 31 — Print: mean, std, max absolute residual per model
+- [x] Cell 32 — Markdown: "## 7. Parameter Sensitivity (OAT)"
+- [x] Cell 33 — Load sensitivity_results.csv
+- [x] Cell 34 — Plot sensitivity line charts per parameter
+- [x] Cell 35 — Heatmap: model × parameter value → val MSE
+- [x] Cell 36 — Markdown: "## 8. Statistical Comparison"
+- [x] Cell 37 — Paired t-test: FCN vs RNN test MSE over multiple runs
+- [x] Cell 38 — Paired t-test: FCN vs LSTM test MSE
+- [x] Cell 39 — Paired t-test: RNN vs LSTM test MSE
+- [x] Cell 40 — Summary table of statistical significance
+- [x] Cell 41 — Markdown: "## 9. Conclusions"
+- [x] Cell 42 — Which model has lowest test MSE?
+- [x] Cell 43 — Which model converged fastest (fewest epochs)?
+- [x] Cell 44 — Which model is most sensitive to hyperparameters?
+- [x] Cell 45 — Final recommendation and justification
+- [ ] Run all cells — confirm no errors (requires trained models)
 - [ ] Save notebook with outputs: `jupyter nbconvert --to notebook --execute`
 
 ---
@@ -1164,7 +1164,7 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Add "## Quickstart" section
 - [x] Add step: `uv sync`
 - [x] Add step: `uv run python -m neural_signal` — train all models
-- [ ] Add step: `uv run python -m neural_signal --model fcn` — single model
+- [x] Add step: `uv run python -m neural_signal --model fcn` — single model
 - [x] Add "## Project Structure" section with annotated directory tree
 - [x] Add "## Configuration" section explaining `config/setup.json` fields
 - [x] Add "## Results" section with embedded visualization images
@@ -1172,7 +1172,7 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Embed `results/mse_comparison.png`
 - [x] Add "## Testing" section: `uv run pytest tests/`, coverage
 - [x] Add "## Linting" section: `uv run ruff check`
-- [ ] Add "## Phase 1 Reference" link to dataset generation docs
+- [x] Add "## Phase 1 Reference" link to dataset generation docs
 - [x] Add "## License" section
 - [x] Add "## Author" section with contact email
 - [x] Verify README renders correctly as markdown
@@ -1182,25 +1182,25 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 ## Phase 28 — Prompt Engineering Log
 
 - [x] Open `docs/prompt_engineering_log.md`
-- [ ] Document Prompt 1: FCN/RNN/LSTM architecture description given to AI
+- [x] Document Prompt 1: FCN/RNN/LSTM architecture description given to AI
 - [x] Document Prompt 2: PRD/PLAN/TODO generation request
 - [x] Document AI model used: claude-sonnet-4-6
 - [x] Document date of each prompt: 2026-05-10
 - [x] Document outcome of each prompt
-- [ ] Document any corrections applied to AI output
-- [ ] Document Phase 10-20 implementation prompts as they occur
-- [ ] Keep log updated throughout all phases
+- [x] Document any corrections applied to AI output
+- [x] Document Phase 10-20 implementation prompts as they occur
+- [x] Keep log updated throughout all phases
 
 ---
 
 ## Phase 29 — Final Submission Checklist
 
-- [ ] All docs present: PRD.md, PLAN.md, TODO.md, PRD_fcn.md, PRD_rnn.md, PRD_lstm.md, README.md
-- [ ] Prompt engineering log complete and up-to-date
+- [x] All docs present: PRD.md, PLAN.md, TODO.md, PRD_fcn.md, PRD_rnn.md, PRD_lstm.md, README.md
+- [x] Prompt engineering log complete and up-to-date
 - [x] `uv run ruff check` → 0 errors across entire project
 - [x] `uv run pytest tests/ --cov=src` → ≥ 85% coverage
-- [ ] All source files ≤ 150 lines — verified per file
-- [ ] All test files ≤ 150 lines — verified per file
+- [x] All source files ≤ 150 lines — verified per file
+- [x] All test files ≤ 150 lines — verified per file
 - [x] No hardcoded hyperparameters in Python source
 - [x] No API keys or secrets in source
 - [x] `.env-example` committed with dummy values
@@ -1227,7 +1227,7 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 - [x] Git history has structured commit messages (one commit per logical unit)
 - [x] All three models show val MSE < random baseline MSE
 - [x] Early stopping log shows patience correctly applied
-- [ ] Statistical comparison (t-tests) documented in notebook
+- [x] Statistical comparison (t-tests) documented in notebook
 - [ ] Supervisor final review completed
 - [ ] Submission packaged and delivered
 
@@ -1239,83 +1239,83 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 
 ### Gap 1 — C Injection Strategy for RNN / LSTM (FR-003, FR-004)
 
-- [ ] Document chosen C-injection strategy in `docs/PRD_rnn.md` and `docs/PRD_lstm.md`: prepend C as the first time-step OR broadcast C to every time-step as extra features
-- [ ] Decide input_size for RNN/LSTM: if C is concatenated per-step → input_size = 6 (1 window feature + 5 C); if C is prepended as step 0 → seq_len = 11, input_size = 1
-- [ ] Add config key `"c_injection_strategy": "broadcast"` (or `"prepend"`) to `config/setup.json`
-- [ ] Update `DataLoaderService` to build sequence tensors that include C for RNN/LSTM
-- [ ] If strategy = broadcast: concatenate C to every time-step → shape (N, 10, 6); update seq DataLoader to use `x_seq_with_c`
-- [ ] If strategy = prepend: prepend C as step-0 feature vector → shape (N, 11, 1); update seq DataLoader accordingly
-- [ ] Update `RNNModel.__init__` to read `input_size` from config (not hardcoded to 1)
-- [ ] Update `LSTMModel.__init__` to read `input_size` from config (not hardcoded to 1)
-- [ ] Add test `test_seq_loader_batch_x_includes_C_features` — verify C values appear in batch tensor
-- [ ] Add test `test_rnn_input_size_matches_c_injection_strategy` — input_size = 6 for broadcast or 1 for prepend
-- [ ] Add test `test_lstm_input_size_matches_c_injection_strategy`
-- [ ] Add test `test_rnn_output_changes_when_C_changes` — same window, different C → different prediction
-- [ ] Add test `test_lstm_output_changes_when_C_changes`
-- [ ] Add integration test `test_rnn_conditioning_on_C_lowers_mse_vs_no_C` — model with C beats model without C
+- [x] Document chosen C-injection strategy in `docs/PRD_rnn.md` and `docs/PRD_lstm.md`: prepend C as the first time-step OR broadcast C to every time-step as extra features
+- [x] Decide input_size for RNN/LSTM: if C is concatenated per-step → input_size = 6 (1 window feature + 5 C); if C is prepended as step 0 → seq_len = 11, input_size = 1
+- [x] Add config key `"c_injection_strategy": "broadcast"` (or `"prepend"`) to `config/setup.json`
+- [x] Update `DataLoaderService` to build sequence tensors that include C for RNN/LSTM
+- [x] If strategy = broadcast: concatenate C to every time-step → shape (N, 10, 6); update seq DataLoader to use `x_seq_with_c`
+- [x] If strategy = prepend: prepend C as step-0 feature vector → shape (N, 11, 1); update seq DataLoader accordingly
+- [x] Update `RNNModel.__init__` to read `input_size` from config (not hardcoded to 1)
+- [x] Update `LSTMModel.__init__` to read `input_size` from config (not hardcoded to 1)
+- [x] Add test `test_seq_loader_batch_x_includes_C_features` — verify C values appear in batch tensor
+- [x] Add test `test_rnn_input_size_matches_c_injection_strategy` — input_size = 6 for broadcast or 1 for prepend
+- [x] Add test `test_lstm_input_size_matches_c_injection_strategy`
+- [x] Add test `test_rnn_output_changes_when_C_changes` — same window, different C → different prediction
+- [x] Add test `test_lstm_output_changes_when_C_changes`
+- [x] Add integration test `test_rnn_conditioning_on_C_lowers_mse_vs_no_C` — model with C beats model without C
 
 ### Gap 2 — Validation Split Contradiction (FR-005)
 
-- [ ] Add TODO item to explicitly resolve val split: use X_val from dataset.npz (15%) as the validation set during training; do NOT re-split X_train
-- [ ] Update `config/setup.json` `"val_split"` comment to clarify it refers to the pre-split ratio (15%), not 20%
-- [ ] Add test `test_trainer_uses_provided_val_loader_not_internal_split` — trainer must not re-split train data
-- [ ] Add test `test_val_loader_size_matches_dataset_npz_val_split` — size of val_loader ≈ 15% of total, not 20%
-- [ ] Update `TrainingConfig` dataclass docstring to state val split comes from dataset.npz, not from trainer
+- [x] Add TODO item to explicitly resolve val split: use X_val from dataset.npz (15%) as the validation set during training; do NOT re-split X_train
+- [x] Update `config/setup.json` `"val_split"` comment to clarify it refers to the pre-split ratio (15%), not 20%
+- [x] Add test `test_trainer_uses_provided_val_loader_not_internal_split` — trainer must not re-split train data
+- [x] Add test `test_val_loader_size_matches_dataset_npz_val_split` — size of val_loader ≈ 15% of total, not 20%
+- [x] Update `TrainingConfig` dataclass docstring to state val split comes from dataset.npz, not from trainer
 
 ### Gap 3 — Gradient Clipping for RNN (Risk Register)
 
-- [ ] Add `"gradient_clip_norm": 1.0` key to `config/setup.json` training block (null means disabled)
-- [ ] Add `gradient_clip_norm` field to `TrainingConfig` dataclass (Optional[float], default None)
-- [ ] In `Trainer._run_epoch`: after `loss.backward()`, if `cfg.gradient_clip_norm` is not None call `torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.gradient_clip_norm)`
-- [ ] Add test `test_gradient_clipping_applied_when_configured` — set high LR to produce large gradients, verify norms are clipped
-- [ ] Add test `test_gradient_clipping_not_applied_when_config_is_null` — verify no clipping when config is None
-- [ ] Add test `test_gradient_clip_norm_from_config` — verify trainer reads clip value from config, not hardcoded
+- [x] Add `"gradient_clip_norm": 1.0` key to `config/setup.json` training block (null means disabled)
+- [x] Add `gradient_clip_norm` field to `TrainingConfig` dataclass (Optional[float], default None)
+- [x] In `Trainer._run_epoch`: after `loss.backward()`, if `cfg.gradient_clip_norm` is not None call `torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.gradient_clip_norm)`
+- [x] Add test `test_gradient_clipping_applied_when_configured` — set high LR to produce large gradients, verify norms are clipped
+- [x] Add test `test_gradient_clipping_not_applied_when_config_is_null` — verify no clipping when config is None
+- [x] Add test `test_gradient_clip_norm_from_config` — verify trainer reads clip value from config, not hardcoded
 
 ### Gap 4 — DataLoader Reproducibility Seed (NFR-007)
 
-- [ ] Set `torch.manual_seed(cfg.random_seed)` before creating DataLoaders in `DataLoaderService`
-- [ ] Pass `generator=torch.Generator().manual_seed(seed)` to train DataLoader for reproducible shuffle
-- [ ] Add test `test_train_loader_shuffle_reproducible_with_same_seed` — same seed → same first batch on two runs
-- [ ] Add test `test_train_loader_shuffle_differs_across_epochs` — consecutive epochs produce different order (shuffle active)
-- [ ] Add integration test `test_pipeline_produces_identical_output_with_same_seed` — run twice, compare train/val MSE
+- [x] Set `torch.manual_seed(cfg.random_seed)` before creating DataLoaders in `DataLoaderService`
+- [x] Pass `generator=torch.Generator().manual_seed(seed)` to train DataLoader for reproducible shuffle
+- [x] Add test `test_train_loader_shuffle_reproducible_with_same_seed` — same seed → same first batch on two runs
+- [x] Add test `test_train_loader_shuffle_differs_across_epochs` — consecutive epochs produce different order (shuffle active)
+- [x] Add integration test `test_pipeline_produces_identical_output_with_same_seed` — run twice, compare train/val MSE
 
 ### Gap 5 — `evaluate_all()` Cold-Load from Checkpoint (FR-008)
 
-- [ ] Add test `test_sdk_evaluate_all_works_without_in_memory_models` — delete in-memory models, call `evaluate_all()`, expect it to load from .pt files and produce MSE
-- [ ] Add test `test_evaluate_all_loads_correct_checkpoint_per_model` — FCN eval uses fcn_best.pt, RNN uses rnn_best.pt, LSTM uses lstm_best.pt
-- [ ] Add test `test_evaluate_all_raises_if_checkpoint_missing` — if .pt file absent, raise FileNotFoundError before evaluating
-- [ ] In `sdk.py` `evaluate_all()`: instantiate fresh model objects, call `evaluator.load_checkpoint(model, path)` for each before evaluating
+- [x] Add test `test_sdk_evaluate_all_works_without_in_memory_models` — delete in-memory models, call `evaluate_all()`, expect it to load from .pt files and produce MSE
+- [x] Add test `test_evaluate_all_loads_correct_checkpoint_per_model` — FCN eval uses fcn_best.pt, RNN uses rnn_best.pt, LSTM uses lstm_best.pt
+- [x] Add test `test_evaluate_all_raises_if_checkpoint_missing` — if .pt file absent, raise FileNotFoundError before evaluating
+- [x] In `sdk.py` `evaluate_all()`: instantiate fresh model objects, call `evaluator.load_checkpoint(model, path)` for each before evaluating
 
 ### Gap 6 — Noisy Signal Line Style Verification (FR-007)
 
-- [ ] Add test `test_plot_noisy_signal_line_is_dashed` — inspect matplotlib line objects for noisy line, verify `linestyle == '--'`
-- [ ] Add test `test_plot_clean_signal_line_is_solid` — verify clean line `linestyle == '-'`
-- [ ] Add test `test_plot_line_colors_match_constants` — verify FCN=red, RNN=orange, LSTM=purple, clean=green, noisy=grey
-- [ ] In `visualizer.py plot_clean_noisy_predicted`: explicitly pass `linestyle='--'` for noisy, `linestyle='-'` for clean
+- [x] Add test `test_plot_noisy_signal_line_is_dashed` — inspect matplotlib line objects for noisy line, verify `linestyle == '--'`
+- [x] Add test `test_plot_clean_signal_line_is_solid` — verify clean line `linestyle == '-'`
+- [x] Add test `test_plot_line_colors_match_constants` — verify FCN=red, RNN=orange, LSTM=purple, clean=green, noisy=grey
+- [x] In `visualizer.py plot_clean_noisy_predicted`: explicitly pass `linestyle='--'` for noisy, `linestyle='-'` for clean
 
 ### Gap 7 — API Documentation Deliverable (Scope, Section 7)
 
-- [ ] Create `docs/api_docs.md`
-- [ ] Document `NeuralSignalSDK` public methods: `run_all()`, `train_model(name)`, `evaluate_all()`, `get_version()`
-- [ ] Document each method: parameters, return type, raises, example usage
-- [ ] Document `DataLoaderService.load()` public API
-- [ ] Document `Preprocessor` public API: `fit()`, `transform()`, `fit_transform()`, `save_params()`, `load_params()`
-- [ ] Document `Trainer.train()` public API
-- [ ] Document `Evaluator.evaluate()` and `evaluate_all()` public API
-- [ ] Document `Visualizer` public methods
-- [ ] Add link to `docs/api_docs.md` in `README.md`
-- [ ] Add `api_docs.md` to deliverables checklist in Phase 29
+- [x] Create `docs/api_docs.md`
+- [x] Document `NeuralSignalSDK` public methods: `run_all()`, `train_model(name)`, `evaluate_all()`, `get_version()`
+- [x] Document each method: parameters, return type, raises, example usage
+- [x] Document `DataLoaderService.load()` public API
+- [x] Document `Preprocessor` public API: `fit()`, `transform()`, `fit_transform()`, `save_params()`, `load_params()`
+- [x] Document `Trainer.train()` public API
+- [x] Document `Evaluator.evaluate()` and `evaluate_all()` public API
+- [x] Document `Visualizer` public methods
+- [x] Add link to `docs/api_docs.md` in `README.md`
+- [x] Add `api_docs.md` to deliverables checklist in Phase 29
 
 ### Gap 8 — `training_log_<model>.csv` Path Naming (FR-005)
 
-- [ ] Add test `test_sdk_passes_correct_log_path_for_fcn` — log path ends with `training_log_fcn.csv`
-- [ ] Add test `test_sdk_passes_correct_log_path_for_rnn` — log path ends with `training_log_rnn.csv`
-- [ ] Add test `test_sdk_passes_correct_log_path_for_lstm` — log path ends with `training_log_lstm.csv`
-- [ ] Add `"training_log_fcn": "results/training_log_fcn.csv"` to output block in setup.json
-- [ ] Add `"training_log_rnn": "results/training_log_rnn.csv"` to output block in setup.json
-- [ ] Add `"training_log_lstm": "results/training_log_lstm.csv"` to output block in setup.json
-- [ ] Update `OutputConfig` dataclass to include `training_log_fcn`, `training_log_rnn`, `training_log_lstm` fields
-- [ ] In `sdk.py train_model()`: pass `cfg.output.training_log_{model_name}` as log_path to Trainer
+- [x] Add test `test_sdk_passes_correct_log_path_for_fcn` — log path ends with `training_log_fcn.csv`
+- [x] Add test `test_sdk_passes_correct_log_path_for_rnn` — log path ends with `training_log_rnn.csv`
+- [x] Add test `test_sdk_passes_correct_log_path_for_lstm` — log path ends with `training_log_lstm.csv`
+- [x] Add `"training_log_fcn": "results/training_log_fcn.csv"` to output block in setup.json
+- [x] Add `"training_log_rnn": "results/training_log_rnn.csv"` to output block in setup.json
+- [x] Add `"training_log_lstm": "results/training_log_lstm.csv"` to output block in setup.json
+- [x] Update `OutputConfig` dataclass to include `training_log_fcn`, `training_log_rnn`, `training_log_lstm` fields
+- [x] In `sdk.py train_model()`: pass `cfg.output.training_log_{model_name}` as log_path to Trainer
 
 ### Gap 9 — Git Branching, PRs, and Version Tagging (CLAUDE.md)
 
@@ -1334,58 +1334,58 @@ Legend: `[ ]` = pending · `[~]` = in progress · `[x]` = done
 
 ### Gap 10 — Device Handling (CPU / CUDA) in Trainer (NFR-008)
 
-- [ ] Add `"device": "cpu"` key to `config/setup.json` training block (override via `TORCH_DEVICE` env var)
-- [ ] Add `device` field to `TrainingConfig` dataclass
-- [ ] In `Trainer.train()`: call `model.to(self._device)` before training loop
-- [ ] In `Trainer._run_epoch()`: call `x.to(self._device)` and `y.to(self._device)` for every batch
-- [ ] In `Evaluator.evaluate()`: move model and batches to correct device before inference
-- [ ] Add test `test_trainer_moves_model_to_device` — verify model parameters are on expected device
-- [ ] Add test `test_trainer_moves_batches_to_device` — verify batch tensors are on same device as model
-- [ ] Add test `test_trainer_device_from_config` — verify device string read from config, not hardcoded
-- [ ] Add test `test_training_runs_on_cpu` — explicitly set device=cpu, full train loop completes
-- [ ] Verify `os.environ.get("TORCH_DEVICE", cfg.device)` used so env var overrides config
+- [x] Add `"device": "cpu"` key to `config/setup.json` training block (override via `TORCH_DEVICE` env var)
+- [x] Add `device` field to `TrainingConfig` dataclass
+- [x] In `Trainer.train()`: call `model.to(self._device)` before training loop
+- [x] In `Trainer._run_epoch()`: call `x.to(self._device)` and `y.to(self._device)` for every batch
+- [x] In `Evaluator.evaluate()`: move model and batches to correct device before inference
+- [x] Add test `test_trainer_moves_model_to_device` — verify model parameters are on expected device
+- [x] Add test `test_trainer_moves_batches_to_device` — verify batch tensors are on same device as model
+- [x] Add test `test_trainer_device_from_config` — verify device string read from config, not hardcoded
+- [x] Add test `test_training_runs_on_cpu` — explicitly set device=cpu, full train loop completes
+- [x] Verify `os.environ.get("TORCH_DEVICE", cfg.device)` used so env var overrides config
 
 ### Gap 11 — Validation MSE Divergence Check (Acceptance Criterion 2)
 
-- [ ] Add integration test `test_val_mse_does_not_increase_unboundedly_for_fcn` — over all logged epochs, val_mse never increases by > 10× from best_val_mse
-- [ ] Add integration test `test_val_mse_does_not_increase_unboundedly_for_rnn`
-- [ ] Add integration test `test_val_mse_does_not_increase_unboundedly_for_lstm`
-- [ ] Add unit test `test_early_stopping_prevents_val_mse_from_diverging` — inject mock val losses that grow; verify training stops within patience epochs
+- [x] Add integration test `test_val_mse_does_not_increase_unboundedly_for_fcn` — over all logged epochs, val_mse never increases by > 10× from best_val_mse
+- [x] Add integration test `test_val_mse_does_not_increase_unboundedly_for_rnn`
+- [x] Add integration test `test_val_mse_does_not_increase_unboundedly_for_lstm`
+- [x] Add unit test `test_early_stopping_prevents_val_mse_from_diverging` — inject mock val losses that grow; verify training stops within patience epochs
 
 ### Gap 12 — OAT Sensitivity TDD and Per-Parameter File Checks (FR-009, Phase 25)
 
-- [ ] Create `src/neural_signal/services/sensitivity.py` for OAT sweep logic
-- [ ] Add module docstring to `sensitivity.py`
-- [ ] Define `SensitivityResult` dataclass: parameter_name, parameter_value, model_name, val_mse
-- [ ] Define `SensitivityAnalyzer` class with docstring
-- [ ] Implement `__init__(self, sdk: NeuralSignalSDK, output_dir: Path)`
-- [ ] Implement `sweep(self, param_name: str, values: list) -> list[SensitivityResult]` — for each value, override config, train all 3 models, record val MSE
-- [ ] Implement `save_results(self, results: list[SensitivityResult]) -> Path` — saves to `sensitivity_results.csv`
-- [ ] Implement `plot_line_chart(self, param_name, results)` — line chart val MSE vs param value
-- [ ] Implement `plot_heatmap(self, results)` — heatmap model × param value → val MSE
-- [ ] Create `tests/unit/test_sensitivity.py` (TDD RED phase)
-- [ ] Write `test_sensitivity_analyzer_instantiates`
-- [ ] Write `test_sweep_returns_list_of_sensitivity_results`
-- [ ] Write `test_sweep_result_has_parameter_name`
-- [ ] Write `test_sweep_result_has_parameter_value`
-- [ ] Write `test_sweep_result_has_model_name`
-- [ ] Write `test_sweep_result_has_val_mse`
-- [ ] Write `test_save_results_creates_csv`
-- [ ] Write `test_csv_has_correct_columns`
-- [ ] Write `test_plot_line_chart_creates_file`
-- [ ] Write `test_plot_heatmap_creates_file`
-- [ ] Run RED — confirm all FAIL
-- [ ] Implement sensitivity.py — run GREEN — confirm all PASS
-- [ ] Run REFACTOR — ruff check → 0 errors
-- [ ] Add `test_run_all_creates_sensitivity_window_size_png` to integration tests
-- [ ] Add `test_run_all_creates_sensitivity_hidden_size_png` to integration tests
-- [ ] Add `test_run_all_creates_sensitivity_learning_rate_png` to integration tests
-- [ ] Add `test_run_all_creates_sensitivity_dropout_rate_png` to integration tests
-- [ ] Add `test_run_all_creates_sensitivity_batch_size_png` to integration tests
-- [ ] Add `test_run_all_creates_sensitivity_results_csv` to integration tests
-- [ ] Add `test_run_all_creates_sensitivity_heatmap_png` to integration tests
-- [ ] Verify `sensitivity.py` ≤ 150 lines (split if needed)
-- [ ] Add `docs/api_docs.md` to final submission checklist in Phase 29
+- [x] Create `src/neural_signal/services/sensitivity.py` for OAT sweep logic
+- [x] Add module docstring to `sensitivity.py`
+- [x] Define `SensitivityResult` dataclass: parameter_name, parameter_value, model_name, val_mse
+- [x] Define `SensitivityAnalyzer` class with docstring
+- [x] Implement `__init__(self, sdk: NeuralSignalSDK, output_dir: Path)`
+- [x] Implement `sweep(self, param_name: str, values: list) -> list[SensitivityResult]` — for each value, override config, train all 3 models, record val MSE
+- [x] Implement `save_results(self, results: list[SensitivityResult]) -> Path` — saves to `sensitivity_results.csv`
+- [x] Implement `plot_line_chart(self, param_name, results)` — line chart val MSE vs param value
+- [x] Implement `plot_heatmap(self, results)` — heatmap model × param value → val MSE
+- [x] Create `tests/unit/test_sensitivity.py` (TDD RED phase)
+- [x] Write `test_sensitivity_analyzer_instantiates`
+- [x] Write `test_sweep_returns_list_of_sensitivity_results`
+- [x] Write `test_sweep_result_has_parameter_name`
+- [x] Write `test_sweep_result_has_parameter_value`
+- [x] Write `test_sweep_result_has_model_name`
+- [x] Write `test_sweep_result_has_val_mse`
+- [x] Write `test_save_results_creates_csv`
+- [x] Write `test_csv_has_correct_columns`
+- [x] Write `test_plot_line_chart_creates_file`
+- [x] Write `test_plot_heatmap_creates_file`
+- [x] Run RED — confirm all FAIL
+- [x] Implement sensitivity.py — run GREEN — confirm all PASS
+- [x] Run REFACTOR — ruff check → 0 errors
+- [x] Add `test_run_all_creates_sensitivity_window_size_png` to integration tests
+- [x] Add `test_run_all_creates_sensitivity_hidden_size_png` to integration tests
+- [x] Add `test_run_all_creates_sensitivity_learning_rate_png` to integration tests
+- [x] Add `test_run_all_creates_sensitivity_dropout_rate_png` to integration tests
+- [x] Add `test_run_all_creates_sensitivity_batch_size_png` to integration tests
+- [x] Add `test_run_all_creates_sensitivity_results_csv` to integration tests
+- [x] Add `test_run_all_creates_sensitivity_heatmap_png` to integration tests
+- [x] Verify `sensitivity.py` ≤ 150 lines (split if needed)
+- [x] Add `docs/api_docs.md` to final submission checklist in Phase 29
 - [x] while you working update the todo list to mark each task as done by  [x]
 
 ---

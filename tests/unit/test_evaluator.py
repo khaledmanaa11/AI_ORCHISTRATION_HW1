@@ -117,3 +117,33 @@ def test_evaluator_with_explicit_cpu_device(simple_model, tmp_results_dir, tmp_p
         simple_model, "fcn", tmp_path / "ckpt.pt", loader, loader, loader, 5, False
     )
     assert result.test_mse < float("inf")
+
+
+def test_mse_computed_without_gradient(simple_model, tmp_results_dir, tmp_path):
+    """evaluate() should not accumulate gradients."""
+    import torch
+    loader = _loader()
+    ev = Evaluator(tmp_results_dir)
+    with torch.no_grad():
+        result = ev.evaluate(
+            simple_model, "fcn", tmp_path / "ckpt.pt", loader, loader, loader, 5, False
+        )
+    assert result.train_mse >= 0
+
+
+def test_comparison_dataframe_has_val_mse_column(simple_model, tmp_results_dir, tmp_path):
+    loader = _loader()
+    r = Evaluator(tmp_results_dir).evaluate(
+        simple_model, "fcn", tmp_path / "ckpt.pt", loader, loader, loader, 5, False
+    )
+    df = Evaluator(tmp_results_dir).save_comparison_table([r], tmp_results_dir / "c.csv")
+    assert "val_mse" in df.columns
+
+
+def test_comparison_dataframe_has_epochs_trained_column(simple_model, tmp_results_dir, tmp_path):
+    loader = _loader()
+    r = Evaluator(tmp_results_dir).evaluate(
+        simple_model, "fcn", tmp_path / "ckpt.pt", loader, loader, loader, 5, False
+    )
+    df = Evaluator(tmp_results_dir).save_comparison_table([r], tmp_results_dir / "c2.csv")
+    assert "epochs_trained" in df.columns

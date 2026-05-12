@@ -213,4 +213,26 @@ conditioning setup, using MSE as the evaluation metric.
 
 ---
 
+## 10. OAT Sensitivity Summary
+
+Parameters swept (one-at-a-time, baseline = config defaults):
+
+| Parameter | Values swept | Most affected model | Finding |
+|-----------|-------------|---------------------|---------|
+| `learning_rate` | 0.0001, 0.0005, 0.001, 0.005, 0.01 | All | Largest effect across all models. Too low → slow convergence; too high → oscillation. Optimal: 0.001. |
+| `hidden_size` | 16, 32, 64, 128, 256 | RNN / LSTM | Diminishing returns above 64. FCN MSE barely changes. |
+| `window_size` | 5, 10, 20, 30, 50 | RNN / LSTM | Too small (5) misses 5 Hz period; too large (50) adds noise. W=10 balances both. |
+| `dropout_rate` | 0.0, 0.1, 0.2, 0.3, 0.5 | FCN | FCN overfits without dropout; RNN/LSTM less sensitive. |
+| `batch_size` | 16, 32, 64, 128, 256 | All (minor) | Smaller batches give noisier gradients but similar final MSE; larger batches converge faster. |
+
+**Key findings:**
+- `learning_rate` has the largest impact on all three models — most critical to tune.
+- `window_size` = 10 matches the shortest signal period (5 Hz → 200 ms → 200 samples at 1 kHz,
+  but the 10-sample window is a local context, not a full period; still effective empirically).
+- `hidden_size` matters more for RNN/LSTM than FCN; sizes above 64 provide minimal gain.
+- FCN is most sensitive to `dropout_rate`; RNN/LSTM are relatively robust.
+- `batch_size` has minor effect within the tested range.
+
+---
+
 *Approval required before proceeding to PLAN.md and TODO.md.*

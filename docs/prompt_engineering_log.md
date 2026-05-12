@@ -118,6 +118,33 @@ phases from environment setup through final checklist.
 
 ---
 
+## Prompt 6 — TODO Gap Completion (2026-05-11)
+
+**Date:** 2026-05-11
+**Prompt Summary:** "Open the docs folder, find each TODO item not marked [x], implement it,
+and mark it done." Systematically addressed all unchecked items in TODO_training_networks.md.
+
+**Implemented:**
+- SDK: added `RunResult` dataclass, `get_version()`, `ValueError` guard for unknown model
+- `main.py`: added `sys` import, proper exit codes (0/1), updated RunResult handling
+- `visualizer.py` REFACTOR: extracted `_save_and_close()` and `_apply_common_style()` helpers
+- Missing tests: added 7 to test_data_loader.py, 2 to test_preprocessor.py, 7 to test_lstm.py,
+  1 to test_rnn.py, 7 to test_evaluator.py; created test_trainer_extended.py (15 tests) and
+  test_visualizer_extra.py (7 tests); added RunResult tests and `get_version` test to test_nn_sdk.py
+- README: added `--model fcn` quickstart step, Phase 1 Reference section
+
+**Corrections applied:**
+- `test_random_seed_fixes_weight_init` simplified to use `torch.manual_seed` directly
+  (trainer seeds globally but data randomness still differs across independent runs)
+- Removed unused `typing.Any` import from sdk.py (ruff F401)
+- Removed unused `pytest` import from test_trainer_extended.py (ruff F401)
+- Fixed semicolon on same line (ruff E702) in test_trainer_extended.py
+- Removed unused `matplotlib.pyplot` from test_visualizer_extra.py (ruff F401)
+
+**Outcome:** All new tests pass; ruff 0 errors on all modified files.
+
+---
+
 ## AI Model Used
 
 - **Model:** claude-sonnet-4-6

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -90,6 +91,49 @@ class SensitivityAnalyzer:
                 best_val = val_mse
 
         return best_val
+
+    def save_results(self, results: list[SensitivityResult]) -> Path:
+        """Save OAT results to sensitivity_results.csv; return path."""
+        path = self._results_dir / "sensitivity_results.csv"
+        with path.open("w", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=["param_name", "param_value", "val_mse"])
+            writer.writeheader()
+            for r in results:
+                writer.writerow({"param_name": r.param_name,
+                                 "param_value": r.param_value, "val_mse": r.val_mse})
+        return path
+
+    def plot_line_chart(self, param_name: str, results: list[SensitivityResult]) -> Path:
+        """Plot val_MSE vs param_value as a line chart; return PNG path."""
+        import matplotlib.pyplot as plt
+        plt.switch_backend("Agg")
+        fig, ax = plt.subplots(figsize=(7, 4))
+        ax.plot([r.param_value for r in results], [r.val_mse for r in results], "o-")
+        ax.set(xlabel=param_name, ylabel="Val MSE", title=f"OAT: {param_name}")
+        ax.grid(True, alpha=0.3)
+        path = self._results_dir / f"sensitivity_{param_name}.png"
+        fig.savefig(path, dpi=100, bbox_inches="tight")
+        plt.close(fig)
+        return path
+
+    def plot_heatmap(self, results: list[SensitivityResult]) -> Path:
+        """Plot param_value heatmap of val_MSE; return PNG path."""
+        import matplotlib.pyplot as plt
+        import numpy as np
+        plt.switch_backend("Agg")
+        mses = np.array([r.val_mse for r in results]).reshape(1, -1)
+        params = [r.param_value for r in results]
+        fig, ax = plt.subplots(figsize=(max(6, len(params)), 3))
+        im = ax.imshow(mses, aspect="auto", cmap="viridis")
+        ax.set_xticks(range(len(params)))
+        ax.set_xticklabels([str(p) for p in params], rotation=45, ha="right")
+        ax.set_yticks([0])
+        ax.set_yticklabels([results[0].param_name if results else ""])
+        fig.colorbar(im, ax=ax, label="Val MSE")
+        path = self._results_dir / "sensitivity_heatmap.png"
+        fig.savefig(path, dpi=100, bbox_inches="tight")
+        plt.close(fig)
+        return path
 
     @staticmethod
     def make_simple_loaders(

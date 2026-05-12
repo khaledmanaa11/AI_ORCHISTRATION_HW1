@@ -94,3 +94,45 @@ def test_lstm_output_deterministic_in_eval(model):
 
 def test_lstm_output_is_float(model):
     assert model.eval()(torch.randn(4, 10, 1)).dtype == torch.float32
+
+
+def test_lstm_second_dense_in_features_equals_32(model):
+    linears = [m for m in model.head.modules() if isinstance(m, nn.Linear)]
+    assert linears[1].in_features == 32
+
+
+def test_lstm_relu_between_dense_layers(model):
+    relus = [m for m in model.head.modules() if isinstance(m, nn.ReLU)]
+    assert len(relus) >= 1
+
+
+def test_lstm_no_activation_on_output(model):
+    """Last module in head must be Linear, not an activation."""
+    head_children = list(model.head.children())
+    assert isinstance(head_children[-1], nn.Linear)
+
+
+def test_lstm_many_to_one_last_output_used(model):
+    """Verify that changing only the last time step changes the output."""
+    x1 = torch.randn(1, 10, 1)
+    x2 = x1.clone()
+    x2[:, -1, :] += 10.0
+    model.eval()
+    assert not torch.allclose(model(x1), model(x2))
+
+
+def test_lstm_input_size_equals_1(model):
+    assert model.lstm.input_size == 1
+
+
+def test_lstm_hidden_size_not_hardcoded():
+    cfg_small = LSTMConfig(hidden_size=8, num_layers=1, dense_hidden_size=4, output_size=1)
+    m = LSTMModel(cfg_small)
+    assert m.lstm.hidden_size == 8
+
+
+def test_lstm_dense_hidden_size_not_hardcoded():
+    cfg_small = LSTMConfig(hidden_size=8, num_layers=1, dense_hidden_size=4, output_size=1)
+    m = LSTMModel(cfg_small)
+    linears = [mod for mod in m.head.modules() if isinstance(mod, nn.Linear)]
+    assert linears[0].out_features == 4

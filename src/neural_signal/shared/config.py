@@ -77,6 +77,7 @@ class ConfigManager:
             nonlinearity=raw["nonlinearity"],
             num_layers=raw["num_layers"],
             output_size=raw["output_size"],
+            input_size=raw.get("input_size", 1),
         )
 
     def _parse_lstm(self, raw: dict) -> LSTMConfig:
@@ -85,6 +86,7 @@ class ConfigManager:
             num_layers=raw["num_layers"],
             dense_hidden_size=raw["dense_hidden_size"],
             output_size=raw["output_size"],
+            input_size=raw.get("input_size", 1),
         )
 
     def _parse_output(self, raw: dict) -> OutputConfig:

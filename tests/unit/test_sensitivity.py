@@ -91,3 +91,34 @@ def test_make_simple_loaders_respects_batch_size(tmp_path):
     train_l, _ = SensitivityAnalyzer.make_simple_loaders(n_train=64, batch_size=16)
     xb, _ = next(iter(train_l))
     assert xb.shape[0] <= 16
+
+
+def test_save_results_creates_csv(tmp_path):
+    sa = SensitivityAnalyzer(_BASE_CFG, tmp_path)
+    results = sa.run("learning_rate", [0.01], _model_factory, _loader_factory)
+    path = sa.save_results(results)
+    assert path.exists() and path.suffix == ".csv"
+
+
+def test_csv_has_correct_columns(tmp_path):
+    import csv as _csv
+    sa = SensitivityAnalyzer(_BASE_CFG, tmp_path)
+    results = sa.run("learning_rate", [0.01], _model_factory, _loader_factory)
+    path = sa.save_results(results)
+    with path.open() as fh:
+        header = next(_csv.reader(fh))
+    assert "param_name" in header and "param_value" in header and "val_mse" in header
+
+
+def test_plot_line_chart_creates_file(tmp_path):
+    sa = SensitivityAnalyzer(_BASE_CFG, tmp_path)
+    results = sa.run("learning_rate", [0.01, 0.001], _model_factory, _loader_factory)
+    path = sa.plot_line_chart("learning_rate", results)
+    assert path.exists() and path.stat().st_size > 0
+
+
+def test_plot_heatmap_creates_file(tmp_path):
+    sa = SensitivityAnalyzer(_BASE_CFG, tmp_path)
+    results = sa.run("learning_rate", [0.01, 0.001], _model_factory, _loader_factory)
+    path = sa.plot_heatmap(results)
+    assert path.exists() and path.stat().st_size > 0

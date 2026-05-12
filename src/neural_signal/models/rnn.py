@@ -9,7 +9,7 @@ from neural_signal.shared.config import RNNConfig
 
 
 class RNNModel(nn.Module):
-    """Vanilla RNN: RNN(input=1, hidden=64, tanh) → Linear(64→1), many-to-one.
+    """Vanilla RNN: RNN(input=cfg.input_size, hidden=64, tanh) → Linear(64→1), many-to-one.
 
     Extracts the last hidden state output[:, -1, :] and maps it to a scalar.
     All sizes from RNNConfig — no literals here.
@@ -19,7 +19,7 @@ class RNNModel(nn.Module):
         """Build RNN and linear head from RNNConfig."""
         super().__init__()
         self.rnn = nn.RNN(
-            input_size=1,
+            input_size=cfg.input_size,
             hidden_size=cfg.hidden_size,
             num_layers=cfg.num_layers,
             nonlinearity=cfg.nonlinearity,

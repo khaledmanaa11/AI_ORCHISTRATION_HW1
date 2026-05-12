@@ -5,7 +5,8 @@ MODEL_RNN = "rnn"
 MODEL_LSTM = "lstm"
 MODEL_NAMES = [MODEL_FCN, MODEL_RNN, MODEL_LSTM]
 
-INPUT_SIZE_FCN = 15  # window(10) + selector(5)
+INPUT_SIZE_FCN = 15      # window(10) + selector(5)
+SEQ_INPUT_SIZE = 6       # window_feature(1) + selector(5) broadcast per timestep
 WINDOW_SIZE = 10
 SELECTOR_SIZE = 5
 

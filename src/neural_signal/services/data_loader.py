@@ -44,14 +44,21 @@ class DataLoaderService:
     """Loads dataset.npz and exposes FCN and RNN/LSTM DataLoaders.
 
     FCN input: concat([X_window, C]) → shape (N, 15)
-    RNN/LSTM input: X_window reshaped → shape (N, window_size, 1)
+    RNN/LSTM input (broadcast strategy): concat window + C per step → shape (N, window_size, 6)
     """
 
-    def __init__(self, dataset_path: Path, batch_size: int, seed: int = 42) -> None:
-        """Initialise with dataset path, batch size, and RNG seed for reproducibility."""
+    def __init__(
+        self,
+        dataset_path: Path,
+        batch_size: int,
+        seed: int = 42,
+        c_injection_strategy: str = "broadcast",
+    ) -> None:
+        """Initialise with dataset path, batch size, RNG seed, and C injection strategy."""
         self._path = Path(dataset_path)
         self._batch_size = batch_size
         self._seed = seed
+        self._c_strategy = c_injection_strategy
 
     def load(self) -> DataBundle:
         """Load .npz, build tensors, and return a DataBundle with all loaders."""
@@ -82,13 +89,13 @@ class DataLoaderService:
                 self._fcn_tensor(x_te, c_te), self._to_tensor(y_te), shuffle=False
             ),
             seq_train_loader=self._make_loader(
-                self._seq_tensor(x_tr), self._to_tensor(y_tr), shuffle=True
+                self._seq_tensor(x_tr, c_tr), self._to_tensor(y_tr), shuffle=True
             ),
             seq_val_loader=self._make_loader(
-                self._seq_tensor(x_va), self._to_tensor(y_va), shuffle=False
+                self._seq_tensor(x_va, c_va), self._to_tensor(y_va), shuffle=False
             ),
             seq_test_loader=self._make_loader(
-                self._seq_tensor(x_te), self._to_tensor(y_te), shuffle=False
+                self._seq_tensor(x_te, c_te), self._to_tensor(y_te), shuffle=False
             ),
             X_train=x_tr, X_val=x_va, X_test=x_te,
             C_train=c_tr, C_val=c_va, C_test=c_te,
@@ -110,10 +117,15 @@ class DataLoaderService:
         """Concatenate window and selector along feature axis for FCN input."""
         return torch.from_numpy(np.concatenate([x_win, cv], axis=1))
 
-    @staticmethod
-    def _seq_tensor(x_win: np.ndarray) -> torch.Tensor:
-        """Reshape window to (N, window_size, 1) for RNN/LSTM input."""
-        return torch.from_numpy(x_win.reshape(x_win.shape[0], x_win.shape[1], 1))
+    def _seq_tensor(self, x_win: np.ndarray, c: np.ndarray) -> torch.Tensor:
+        """Build RNN/LSTM input by broadcasting C selector across all timesteps.
+
+        broadcast strategy: concat window(1) + C(5) per step → (N, seq_len, 6)
+        """
+        n, w = x_win.shape
+        x_3d = x_win.reshape(n, w, 1)
+        c_3d = np.broadcast_to(c[:, np.newaxis, :], (n, w, c.shape[1])).copy()
+        return torch.from_numpy(np.concatenate([x_3d, c_3d], axis=2))
 
     def _make_loader(
         self, x: torch.Tensor, y: torch.Tensor, shuffle: bool

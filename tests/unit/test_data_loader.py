@@ -71,7 +71,7 @@ def test_rnn_input_reshape_shape(tiny_npz, batch_size_fixture):
     bundle = DataLoaderService(tiny_npz, batch_size_fixture).load()
     xb, _ = next(iter(bundle.seq_train_loader))
     assert xb.shape[1] == 10
-    assert xb.shape[2] == 1
+    assert xb.shape[2] == 6  # window(1) + C broadcast(5)
 
 
 def test_data_loader_raises_on_missing_npz(tmp_path, batch_size_fixture):
@@ -134,3 +134,17 @@ def test_different_seeds_produce_different_batches(tiny_npz, batch_size_fixture)
     x1, _ = next(iter(b1.train_loader))
     x2, _ = next(iter(b2.train_loader))
     assert not torch.allclose(x1, x2)
+
+
+def test_val_loader_batch_shape_fcn(tiny_npz, batch_size_fixture):
+    bundle = DataLoaderService(tiny_npz, batch_size_fixture).load()
+    xb, _ = next(iter(bundle.val_loader))
+    assert xb.shape[1] == 15
+
+
+def test_test_loader_batch_shape_fcn(tiny_npz, batch_size_fixture):
+    bundle = DataLoaderService(tiny_npz, batch_size_fixture).load()
+    xb, _ = next(iter(bundle.test_loader))
+    assert xb.shape[1] == 15
+
+

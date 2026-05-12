@@ -130,3 +130,18 @@ def test_raises_before_transform_without_fit(tmp_path):
     p = Preprocessor(tmp_path / "scaler.json")
     with pytest.raises(RuntimeError):
         p.transform(np.ones((10, 5), dtype=np.float32))
+
+
+def test_transform_subtracts_mean(x_train_fixture, tmp_path):
+    p = Preprocessor(tmp_path / "scaler.json")
+    params = p.fit(x_train_fixture)
+    x_norm = p.transform(x_train_fixture)
+    np.testing.assert_allclose(x_norm.mean(axis=0), 0.0, atol=1e-5)
+    assert params.mean is not None
+
+
+def test_transform_divides_by_std(x_train_fixture, tmp_path):
+    p = Preprocessor(tmp_path / "scaler.json")
+    p.fit(x_train_fixture)
+    x_norm = p.transform(x_train_fixture)
+    np.testing.assert_allclose(x_norm.std(axis=0), 1.0, atol=1e-5)

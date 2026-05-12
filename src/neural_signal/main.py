@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
 from neural_signal.sdk.sdk import NeuralSignalSDK
@@ -30,23 +31,33 @@ def _parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
-def main() -> None:
+def main() -> int:
     """Parse CLI args, run the requested model(s), and print results."""
     args = _parse_args()
-    sdk = NeuralSignalSDK(
-        config_path=args.config,
-        rate_limits_path=args.rate_limits,
-    )
-    if args.model == "all":
-        results = sdk.run_all()
-    else:
-        sdk.train_model(args.model)
-        results = sdk.evaluate_all()
+    try:
+        sdk = NeuralSignalSDK(
+            config_path=args.config,
+            rate_limits_path=args.rate_limits,
+        )
+        if args.model == "all":
+            run_result = sdk.run_all()
+            eval_items = {
+                "fcn": run_result.fcn_eval,
+                "rnn": run_result.rnn_eval,
+                "lstm": run_result.lstm_eval,
+            }
+        else:
+            sdk.train_model(args.model)
+            eval_items = sdk.evaluate_all()
 
-    for name, res in results.items():
-        if args.model in ("all", name):
-            print(f"{name.upper():5s}  test_mse={res.test_mse:.6f}  epochs={res.epochs_trained}")
+        for name, res in eval_items.items():
+            if args.model in ("all", name):
+                print(f"{name.upper():5s}  test_mse={res.test_mse:.6f}  epochs={res.epochs_trained}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

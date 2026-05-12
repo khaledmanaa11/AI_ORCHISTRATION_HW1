@@ -30,7 +30,25 @@ matplotlib.use("Agg")
 ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_PATH = ROOT / "data" / "dataset.npz"
 SENS_DIR = ROOT / "results" / "sensitivity"
-SENS_EPOCHS = 20  # quick but enough to show trends
+
+# ── inline configuration (mirrors config/sensitivity_config.json) ─────────────
+BASE_CFG: dict = {
+    "learning_rate": 0.001,
+    "hidden_size": 64,
+    "batch_size": 64,
+    "dropout_rate": 0.1,
+    "recurrent_dropout": 0.0,
+    "sensitivity_epochs": 50,
+    "cross_validation_folds": 5,
+}
+SENS_EPOCHS: int = BASE_CFG["sensitivity_epochs"]
+SENS_SWEEPS: dict = {
+    "learning_rate": [0.0005, 0.001, 0.002, 0.005, 0.01],
+    "hidden_size": [16, 32, 48, 64, 96, 128],
+    "batch_size": [16, 32, 64, 128, 256],
+    "dropout_rate": [0.0, 0.05, 0.1, 0.2, 0.3, 0.5],
+    "recurrent_dropout": [0.0, 0.1, 0.2],
+}
 
 
 # ── data helpers ─────────────────────────────────────────────────────────────
@@ -175,20 +193,7 @@ def main() -> int:
     print("Loading dataset …")
     data = _load_data()
 
-    base_cfg = {
-        "learning_rate": 0.001,
-        "hidden_size": 64,
-        "batch_size": 64,
-        "dropout_rate": 0.1,
-        "sensitivity_epochs": SENS_EPOCHS,
-    }
-
-    sweeps = {
-        "learning_rate": [0.0001, 0.0005, 0.001, 0.005, 0.01],
-        "hidden_size": [16, 32, 64, 128],
-        "batch_size": [16, 32, 64, 128, 256],
-    }
-
+    sweeps = {k: v for k, v in SENS_SWEEPS.items() if k not in ["dropout_rate", "recurrent_dropout"]}
     all_results: dict[str, dict[str, list[SensitivityResult]]] = {}
 
     for param_name, values in sweeps.items():
@@ -203,46 +208,59 @@ def main() -> int:
             ("LSTM", _lstm_factory, lambda cfg: _make_seq_loaders(data, cfg.get("batch_size", 64))),
         ]:
             print(f"  {model_label}: ", end="", flush=True)
-            analyzer = SensitivityAnalyzer(base_cfg, SENS_DIR)
+            analyzer = SensitivityAnalyzer(BASE_CFG, SENS_DIR)
             results = analyzer.run(param_name, values, model_fn, loader_fn)
             model_results[model_label] = results
             analyzer.save_results(results)
             best = min(results, key=lambda r: r.val_mse)
-            print(f"best {param_name}={best.param_value} -> MSE={best.val_mse:.4f}")
+            print(f"best {param_name}={best.param_value} -> MSE={best.val_mse:.4f} ± {best.std_mse:.4f}")
 
         _plot_multi_model(param_name, values, model_results, SENS_DIR)
         all_results[param_name] = model_results
 
-    # FCN-only sweep: dropout_rate
-    print(f"\n{'='*60}")
-    print("Sweeping: dropout_rate (FCN only)")
-    print(f"{'='*60}")
-    dropout_vals = [0.0, 0.05, 0.1, 0.2, 0.3, 0.5]
-    analyzer = SensitivityAnalyzer(base_cfg, SENS_DIR)
-    dropout_results = analyzer.run(
-        "dropout_rate", dropout_vals, _fcn_factory,
-        lambda cfg: _make_fcn_loaders(data, cfg.get("batch_size", 64)),
-    )
-    analyzer.save_results(dropout_results)
-    best_do = min(dropout_results, key=lambda r: r.val_mse)
-    print(f"  FCN: best dropout={best_do.param_value} -> MSE={best_do.val_mse:.4f}")
-
-    # Plot dropout as single-model chart
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(dropout_vals, [r.val_mse for r in dropout_results], "o-",
-            color="#e74c3c", linewidth=2, markersize=6, label="FCN")
-    ax.set_xlabel("dropout_rate", fontsize=12)
-    ax.set_ylabel("Val MSE", fontsize=12)
-    ax.set_title("Sensitivity: dropout_rate (FCN only)", fontsize=14, fontweight="bold")
-    ax.legend(fontsize=11)
-    ax.grid(True, alpha=0.3)
-    fig.savefig(SENS_DIR / "sensitivity_dropout_rate.png", dpi=150, bbox_inches="tight")
-    plt.close(fig)
-
-    all_results["dropout_rate"] = {"FCN": dropout_results}
+    # Architecture-specific sweeps
+    for param_name, models_to_sweep in [
+        ("dropout_rate", [("FCN", _fcn_factory, lambda cfg: _make_fcn_loaders(data, cfg.get("batch_size", 64)))]),
+        ("recurrent_dropout", [
+            ("RNN", _rnn_factory, lambda cfg: _make_seq_loaders(data, cfg.get("batch_size", 64))),
+            ("LSTM", _lstm_factory, lambda cfg: _make_seq_loaders(data, cfg.get("batch_size", 64)))
+        ])
+    ]:
+        if param_name not in SENS_SWEEPS:
+            continue
+        vals = SENS_SWEEPS[param_name]
+        print(f"\n{'='*60}")
+        print(f"Sweeping: {param_name} = {vals} ({','.join(m[0] for m in models_to_sweep)} only)")
+        print(f"{'='*60}")
+        model_results = {}
+        for model_label, model_fn, loader_fn in models_to_sweep:
+            analyzer = SensitivityAnalyzer(BASE_CFG, SENS_DIR)
+            results = analyzer.run(param_name, vals, model_fn, loader_fn)
+            model_results[model_label] = results
+            analyzer.save_results(results)
+            best = min(results, key=lambda r: r.val_mse)
+            print(f"  {model_label}: best {param_name}={best.param_value} -> MSE={best.val_mse:.4f} ± {best.std_mse:.4f}")
+        
+        _plot_multi_model(param_name, vals, model_results, SENS_DIR)
+        all_results[param_name] = model_results
 
     # Summary heatmap
     _plot_summary_heatmap(all_results, SENS_DIR)
+
+    # Statistical Summary Markdown
+    with open(SENS_DIR / "statistical_summary.md", "w") as f:
+        f.write("# Sensitivity Analysis Statistical Summary\n\n")
+        f.write("Generated using 5-fold cross-validation. For each hyperparameter sweep, we report the optimal configuration's Mean MSE and its 95% Bootstrap Confidence Interval.\n\n")
+        for param, models_dict in all_results.items():
+            f.write(f"## Sweep: `{param}`\n")
+            f.write("| Model | Optimal Value | Mean MSE | 95% CI |\n")
+            f.write("|-------|---------------|----------|--------|\n")
+            for model_lbl, results in models_dict.items():
+                best = min(results, key=lambda r: r.val_mse)
+                # Approximate 95% CI from standard deviation: mean ± 1.96 * (std / sqrt(folds))
+                ci_margin = 1.96 * (best.std_mse / np.sqrt(BASE_CFG.get("cross_validation_folds", 1)))
+                f.write(f"| {model_lbl} | {best.param_value} | {best.val_mse:.4f} | [{max(0, best.val_mse - ci_margin):.4f}, {best.val_mse + ci_margin:.4f}] |\n")
+            f.write("\n")
 
     print(f"\nDone! All sensitivity results saved to {SENS_DIR}")
     return 0

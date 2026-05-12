@@ -19,6 +19,7 @@ class SensitivityResult:
     param_name: str
     param_value: Any
     val_mse: float
+    std_mse: float = 0.0
 
 
 class SensitivityAnalyzer:
@@ -49,14 +50,22 @@ class SensitivityAnalyzer:
             model_factory: Callable(config) → nn.Module.
             loader_factory: Callable(config) → (train_loader, val_loader).
         """
+        import numpy as np
+        folds = self._base.get("cross_validation_folds", 1)
         results = []
         for val in values:
             cfg = dict(self._base)
             cfg[param_name] = val
-            model = model_factory(cfg)
-            train_loader, val_loader = loader_factory(cfg)
-            val_mse = self._quick_train(model, train_loader, val_loader, cfg)
-            results.append(SensitivityResult(param_name, val, val_mse))
+            fold_mses = []
+            for fold in range(folds):
+                torch.manual_seed(42 + fold)
+                model = model_factory(cfg)
+                train_loader, val_loader = loader_factory(cfg)
+                val_mse = self._quick_train(model, train_loader, val_loader, cfg)
+                fold_mses.append(val_mse)
+            mean_mse = float(np.mean(fold_mses))
+            std_mse = float(np.std(fold_mses)) if folds > 1 else 0.0
+            results.append(SensitivityResult(param_name, val, mean_mse, std_mse))
         return results
 
     def _quick_train(
@@ -96,11 +105,11 @@ class SensitivityAnalyzer:
         """Save OAT results to sensitivity_results.csv; return path."""
         path = self._results_dir / "sensitivity_results.csv"
         with path.open("w", newline="") as fh:
-            writer = csv.DictWriter(fh, fieldnames=["param_name", "param_value", "val_mse"])
+            writer = csv.DictWriter(fh, fieldnames=["param_name", "param_value", "val_mse", "std_mse"])
             writer.writeheader()
             for r in results:
                 writer.writerow({"param_name": r.param_name,
-                                 "param_value": r.param_value, "val_mse": r.val_mse})
+                                 "param_value": r.param_value, "val_mse": r.val_mse, "std_mse": r.std_mse})
         return path
 
     def plot_line_chart(self, param_name: str, results: list[SensitivityResult]) -> Path:

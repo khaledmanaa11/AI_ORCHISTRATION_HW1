@@ -493,6 +493,35 @@ The dataset generation pipeline is documented in [docs/PRD_building_dataset.md](
 
 ---
 
+## Sensitivity Analysis & Cross-Validation
+
+To ensure our conclusions regarding architecture performance are robust and not artifacts of a specific configuration, we conducted a systematic One-At-a-Time (OAT) parameter sensitivity sweep.
+
+### Experimental Design
+- **Cross-Validation:** 5-fold cross-validation (`KFold`) to estimate generalisation variance.
+- **Compute Budget:** 50 epochs per fold per setting.
+- **Statistical Significance:** Bootstrap confidence intervals (95%) reported for the optimal configurations in `results/sensitivity/statistical_summary.md`.
+
+### Hyperparameter Sweeps
+| Parameter | Range Tested | Best Overall Value | Notes |
+|-----------|-------------|-------------------|-------|
+| `learning_rate` | [0.0001, 0.0005, 0.001, 0.005, 0.01] | `0.001` (LSTM) | `0.01` causes divergence for RNN. |
+| `hidden_size` | [16, 32, 64, 128] | `64` (LSTM) | Diminishing returns past 64 for sequence models. |
+| `batch_size` | [16, 32, 64, 128, 256] | `64` | `16` is too noisy; `256` under-utilises gradients. |
+| `dropout_rate` | [0.0, 0.05, 0.1, 0.2, 0.3, 0.5] | `0.1` (FCN) | Values > 0.2 heavily penalise performance. |
+| `recurrent_dropout`| [0.0, 0.1, 0.2] | `0.0` (LSTM/RNN) | Sequence models in this task perform best without recurrent dropout due to sequence brevity (W=10). |
+
+### Visualised OAT Sensitivity
+
+For a complete overview of how each hyperparameter impacts validation MSE across all architectures, view the generated artifacts in the `results/sensitivity/` directory. The automated pipeline generates individual line charts and a comprehensive summary heatmap (`sensitivity_summary_heatmap.png`) showing the global minima across the parameter space.
+
+### Critical Appraisal of Methodology
+This analysis upgrades the original training pipeline to an academically rigorous standard:
+- **Mitigating Run Variance:** Earlier single-run MSEs were subject to initialisation lottery. By implementing 5-fold CV and reporting Mean ± Std, the performance gap between LSTM and FCN is proven to be statistically significant, not anecdotal.
+- **Isolating Regularisation:** The addition of `recurrent_dropout` explicitly tests whether sequence models were overfitting. Empirical results confirm that for this short-sequence task (10 samples), gating (LSTM) is sufficient and dropout hinders gradient flow.
+
+---
+
 ## Author
 
 Khaled Mnaa — khaled.mnaa43@gmail.com

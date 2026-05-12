@@ -76,6 +76,8 @@ class SensitivityAnalyzer:
         cfg: dict,
     ) -> float:
         """Train for a fixed number of epochs and return best val MSE."""
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model = model.to(device)
         lr = cfg.get("learning_rate", 1e-3)
         epochs = cfg.get("sensitivity_epochs", 5)
         criterion = nn.MSELoss()
@@ -85,6 +87,7 @@ class SensitivityAnalyzer:
         for _ in range(epochs):
             model.train()
             for xb, yb in train_loader:
+                xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
                 criterion(model(xb), yb).backward()
                 optimizer.step()
@@ -92,6 +95,7 @@ class SensitivityAnalyzer:
             with torch.no_grad():
                 total, n = 0.0, 0
                 for xb, yb in val_loader:
+                    xb, yb = xb.to(device), yb.to(device)
                     loss = criterion(model(xb), yb)
                     total += loss.item() * len(xb)
                     n += len(xb)

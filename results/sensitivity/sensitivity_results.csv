@@ -1,0 +1,7 @@
+param_name,param_value,val_mse
+dropout_rate,0.0,0.12495167716561713
+dropout_rate,0.05,0.12847395007994689
+dropout_rate,0.1,0.13470624153003674
+dropout_rate,0.2,0.15543140546084247
+dropout_rate,0.3,0.17096442324376712
+dropout_rate,0.5,0.22559020069436492

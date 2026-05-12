@@ -428,6 +428,12 @@ Full documentation for `NeuralSignalSDK` and all service classes: [`docs/api_doc
 
 ---
 
+## API Reference
+
+Full documentation for `NeuralSignalSDK` and all service classes: [`docs/api_docs.md`](docs/api_docs.md).
+
+---
+
 ## Testing
 
 ```bash
@@ -468,6 +474,14 @@ Zero errors enforced across `src/` and `tests/`. Configuration in `pyproject.tom
 | **s5** | Composite mixture | Forces conditional source separation — same input, different targets based on C |
 
 This frequency spread (5 → 100 Hz, 20× range) ensures each architecture is tested across different temporal scales, revealing the strengths and weaknesses documented in the comparison above.
+
+---
+
+## Phase 1 Reference
+
+The dataset generation pipeline is documented in [docs/PRD_building_dataset.md](docs/PRD_building_dataset.md),
+[docs/PLAN_building_dataset.md](docs/PLAN_building_dataset.md), and
+[docs/TODO_building_dataset.md](docs/TODO_building_dataset.md).
 
 ---
 
